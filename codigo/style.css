@@ -1,0 +1,40 @@
+*{
+    margin: 0;
+    padding: 0;
+    cursor: url("/codigo/cursores/cursor.cur"), auto;
+    box-sizing: border-box;
+
+}
+html, body{
+    height: 90%;
+    
+}
+
+body{
+    margin: 0;
+    background-image: url("/codigo/imagenes/fondo2.gif");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    
+    
+}
+
+header{
+    display: flex;
+     flex-wrap: wrap;  
+    background-color: rgb(52, 45, 181);
+    padding: 20px;
+    gap: 30px;
+    justify-content: center;
+
+}
+
+a{
+    text-decoration: none;
+    color: white;
+    font-size: 30px;
+    
+
+
+}
