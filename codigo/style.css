@@ -19,7 +19,8 @@
 
     img{
         width: 35%;
-        
+         image-rendering: pixelated;       /* Para Chrome, Edge y otros */
+         image-rendering: crisp-edges;      /* Para Firefox */
 
     }
 
