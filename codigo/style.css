@@ -22,7 +22,7 @@
 *{
     margin: 0;
     padding: 0;
-    cursor: url("/codigo/cursores/cursor.cur"), auto;
+    cursor: url("/codigo/cursores/cursor_kris_sword.gif"), auto;
     box-sizing: border-box;
 
 }
@@ -267,6 +267,7 @@ a{
     text-decoration: none;
     color: rgb(255, 255, 255);
     font-size: 30px;
+     cursor: url("/codigo/cursores/pointer_kris.gif"), auto;
 }
 
 #shadow{
@@ -376,4 +377,20 @@ a{
 
 .switch a:hover{
     text-decoration: underline;
+}
+
+/*para el logo a la derecha en*/
+.header-logo-LoginRegister{
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    img{
+        height: 42px;
+        width: auto;
+        image-rendering: pixelated;       /* Para Chrome, Edge y otros */
+        image-rendering: crisp-edges;     /* Para Firefox */
+    }
 }
