@@ -133,38 +133,41 @@ header{
 
 .features{
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 30px;
+    flex-direction: column;
+    gap: 35px;
     max-width: 900px;
     margin: 0 auto 70px auto;
     padding: 0 20px;
 }
 
 .feature-card{
-    flex: 1 1 300px;
-    max-width: 380px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
     padding: 25px;
     background-color: rgba(20, 16, 90, 0.55);
     border: 2px solid rgba(52, 45, 181, 0.9);
     box-shadow: 0 0 18px rgba(0, 0, 0, 0.5);
-    text-align: center;
     color: rgb(255, 255, 255);
     transition-duration: 100ms;
 
     &:hover{
-        transform: scale(1.03);
+        transform: scale(1.02);
         border-color: #7f7bff;
     }
 }
 
+/* En la segunda tarjeta la imagen queda del lado opuesto */
+.feature-card.reverse{
+    flex-direction: row-reverse;
+}
+
 .feature-img{
+    flex: 0 0 45%;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    margin-bottom: 18px;
+    aspect-ratio: 16 / 10;
     background-color: rgba(10, 8, 50, 0.6);
     border: 2px dashed rgba(157, 151, 255, 0.7);
     color: rgba(255, 255, 255, 0.45);
@@ -183,9 +186,14 @@ header{
     }
 }
 
+.feature-text{
+    flex: 1;
+    text-align: left;
+}
+
 .feature-card h3{
     font-family: Mercy;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: normal;
     letter-spacing: 1px;
     margin-bottom: 12px;
@@ -195,8 +203,21 @@ header{
 .feature-card p{
     font-family: 'Delta2';
     font-size: 15px;
-    line-height: 1.6;
+    line-height: 1.7;
     color: rgba(255, 255, 255, 0.88);
+}
+
+/* En pantallas chicas las tarjetas se apilan en vertical */
+@media (max-width: 640px){
+    .feature-card,
+    .feature-card.reverse{
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .feature-text{
+        text-align: center;
+    }
 }
 
 /* Grupo de login/register pegado a la derecha del header */
