@@ -68,7 +68,7 @@ header{
     display: flex;
      flex-wrap: wrap;
     background-color: rgb(52, 45, 181);
-    padding: 10px;
+    padding: 5px;
     gap: 30px;
     justify-content: center;
     font-family:Delta2;
@@ -129,13 +129,26 @@ header{
     }
 }
 
+/* ===== Footer ===== */
+footer{
+    background-color: rgb(52, 45, 181);
+    padding: 20px;
+    text-align: center;
+    color: rgb(255, 255, 255);
+    font-family: 'Delta2';
+    font-size: 14px;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
 /* ===== Features ===== */
 
 .features{
     display: flex;
     flex-direction: column;
-    gap: 35px;
-    max-width: 900px;
+    gap: 40px;
+    max-width: 1150px;
     margin: 0 auto 70px auto;
     padding: 0 20px;
 }
@@ -143,16 +156,17 @@ header{
 .feature-card{
     display: flex;
     align-items: center;
-    gap: 28px;
-    padding: 25px;
+    gap: 35px;
+    padding: 30px;
     background-color: rgba(20, 16, 90, 0.55);
     border: 2px solid rgba(52, 45, 181, 0.9);
+    border-radius: 14px;
     box-shadow: 0 0 18px rgba(0, 0, 0, 0.5);
     color: rgb(255, 255, 255);
     transition-duration: 100ms;
 
     &:hover{
-        transform: scale(1.02);
+        transform: scale(1.01);
         border-color: #7f7bff;
     }
 }
@@ -168,6 +182,7 @@ header{
     align-items: center;
     justify-content: center;
     aspect-ratio: 16 / 10;
+    border-radius: 10px;
     background-color: rgba(10, 8, 50, 0.6);
     border: 2px dashed rgba(157, 151, 255, 0.7);
     color: rgba(255, 255, 255, 0.45);
@@ -193,7 +208,7 @@ header{
 
 .feature-card h3{
     font-family: Mercy;
-    font-size: 28px;
+    font-size: 32px;
     font-weight: normal;
     letter-spacing: 1px;
     margin-bottom: 12px;
@@ -202,7 +217,7 @@ header{
 
 .feature-card p{
     font-family: 'Delta2';
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.7;
     color: rgba(255, 255, 255, 0.88);
 }
@@ -294,8 +309,8 @@ a{
 }
 
 .form-card h1{
-    font-family: Mercy;
-    font-size: 48px;
+    font-family: delta2;
+    font-size: 58px;
     font-weight: normal;
     margin-bottom: 25px;
     text-shadow: 4px 4px 2px rgba(0, 0, 0, 0.6);
@@ -310,6 +325,7 @@ a{
     margin-bottom: 6px;
     font-size: 15px;
     color: rgba(255, 255, 255, 0.85);
+    font-family: 'Delta2';
 }
 
 .form-card input{
@@ -333,7 +349,7 @@ a{
     width: 100%;
     padding: 12px;
     margin-top: 8px;
-    font-family: Mercy;
+    font-family: Delta2;
     font-size: 28px;
     background-color: rgb(52, 45, 181);
     color: white;
@@ -368,6 +384,7 @@ a{
     margin-top: 20px;
     font-size: 15px;
     color: rgba(255, 255, 255, 0.7);
+    font-family: 'Delta2';
 }
 
 .switch a{
