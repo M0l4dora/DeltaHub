@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Workshop - DeltaHub</title>
+    <link rel="icon" type="image/png" href="\codigo\favicon\favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="\codigo\favicon\favicon.svg" />
+    <link rel="shortcut icon" href="\codigo\favicon\favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="\codigo\favicon\apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Deltahub" />
+    <link rel="manifest" href="\codigo\favicon\site.webmanifest" />
+</head>
+<body>
+    <header>
+        <a href="index.html" class="header-logo-LoginRegister">
+            <img src="/codigo/imagenes/DeltahubLogo3px.png" alt="logo deltahub">
+        </a>
+        <a href="index.html" id="shadow">Principal</a>
+        <a href="workshop.html" id="shadow">Workshop</a>
+        <a href="" id="shadow">Comunidad</a>
+        <div class="auth">
+            <a href="login.html" id="shadow">Login</a>
+            <a href="register.html" id="shadow">Signup</a>
+        </div>
+    </header>
+
+    <main class="workshop-layout">
+
+        <!-- BARRA LATERAL IZQUIERDA -->
+        <aside class="ws-sidebar">
+            <div class="ws-sidebar-section">
+                <h3 class="ws-sidebar-title">Categorías</h3>
+                <ul class="ws-category-list">
+                    <li class="ws-category active" data-category="all">
+                        <span class="ws-cat-icon">★</span> Todos
+                    </li>
+                    <li class="ws-category" data-category="mods">
+                        <span class="ws-cat-icon">⚔</span> Mods
+                    </li>
+                    <li class="ws-category" data-category="sprites">
+                        <span class="ws-cat-icon">✦</span> Sprites
+                    </li>
+                    <li class="ws-category" data-category="saves">
+                        <span class="ws-cat-icon">♥</span> Saves
+                    </li>
+                    <li class="ws-category" data-category="musica">
+                        <span class="ws-cat-icon">♪</span> Música
+                    </li>
+                    <li class="ws-category" data-category="herramientas">
+                        <span class="ws-cat-icon">⚙</span> Herramientas
+                    </li>
+                    <li class="ws-category" data-category="traducciones">
+                        <span class="ws-cat-icon">🌐</span> Traducciones
+                    </li>
+                </ul>
+            </div>
+
+            <div class="ws-sidebar-section">
+                <h3 class="ws-sidebar-title">Ordenar por</h3>
+                <ul class="ws-sort-list">
+                    <li class="ws-sort active" data-sort="popular">Popular</li>
+                    <li class="ws-sort" data-sort="reciente">Reciente</li>
+                    <li class="ws-sort" data-sort="valorado">Mejor valorado</li>
+                    <li class="ws-sort" data-sort="descargas">Más descargado</li>
+                </ul>
+            </div>
+
+            <div class="ws-sidebar-section">
+                <h3 class="ws-sidebar-title">Filtros</h3>
+                <div class="ws-filter-tags">
+                    <button class="ws-tag active">Todos</button>
+                    <button class="ws-tag">Cap. 1</button>
+                    <button class="ws-tag">Cap. 2</button>
+                    <button class="ws-tag">Cap. 3</button>
+                    <button class="ws-tag">Sugerencia</button>
+                    <button class="ws-tag">Bugfix</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <section class="ws-content">
+
+            <!-- BARRA DE BÚSQUEDA -->
+            <div class="ws-searchbar">
+                <div class="ws-search-input-wrap">
+                    <span class="ws-search-icon">🔍</span>
+                    <input type="text" id="ws-search" placeholder="Buscar en el workshop..." autocomplete="off">
+                </div>
+                <button class="ws-upload-btn">+ Subir</button>
+            </div>
+
+            <!-- FILTROS ACTIVOS / RESULTS INFO -->
+            <div class="ws-results-bar">
+                <span class="ws-results-count">Mostrando <strong>12</strong> resultados</span>
+                <div class="ws-view-toggle">
+                    <button class="ws-view-btn active" data-view="grid" title="Vista cuadrícula">▦</button>
+                    <button class="ws-view-btn" data-view="list" title="Vista lista">☰</button>
+                </div>
+            </div>
+
+            <!-- GRID DE ITEMS -->
+            <div class="ws-grid">
+
+                <article class="ws-item">
+                    <div class="ws-item-thumb">
+                        <div class="ws-item-thumb-placeholder">MOD</div>
+                        <span class="ws-item-badge popular">Popular</span>
+                    </div>
+                    <div class="ws-item-info">
+                        <h4 class="ws-item-title"> Chaos Cards Rebalanced</h4>
+                        <p class="ws-item-author">por <strong>KrisFan202X</strong></p>
+                        <div class="ws-item-meta">
+                            <span class="ws-item-rating">★★★★☆</span>
+                            <span class="ws-item-downloads">⬇ 1.2k</span>
+                        </div>
+                        <div class="ws-item-tags">
+                            <span class="ws-item-tag">Mods</span>
+                            <span class="ws-item-tag">Cap. 2</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="ws-item">
+                    <div class="ws-item-thumb">
+                        <div class="ws-item-thumb-placeholder">SPRITE</div>
+                        <span class="ws-item-badge new">Nuevo</span>
+                    </div>
+                    <div class="ws-item-info">
+                        <h4 class="ws-item-title">Fanmade Jevil Sprite Pack</h4>
+                        <p class="ws-item-author">por <strong>DarkWorldArt</strong></p>
+                        <div class="ws-item-meta">
+                            <span class="ws-item-rating">★★★★★</span>
+                            <span class="ws-item-downloads">⬇ 856</span>
+                        </div>
+                        <div class="ws-item-tags">
+                            <span class="ws-item-tag">Sprites</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="ws-item">
+                    <div class="ws-item-thumb">
+                        <div class="ws-item-thumb-placeholder">SAVE</div>
+                    </div>
+                    <div class="ws-item-info">
+                        <h4 class="ws-item-title">Save 100% Completo - Cap 3</h4>
+                        <p class="ws-item-author">por <strong>DeltaRunner</strong></p>
+                        <div class="ws-item-meta">
+                            <span class="ws-item-rating">★★★☆☆</span>
+                            <span class="ws-item-downloads">⬇ 2.4k</span>
+                        </div>
+                        <div class="ws-item-tags">
+                            <span class="ws-item-tag">Saves</span>
+                            <span class="ws-item-tag">Cap. 3</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="ws-item">
+                    <div class="ws-item-thumb">
+                        <div class="ws-item-thumb-placeholder">MUS</div>
+                        <span class="ws-item-badge popular">Popular</span>
+                    </div>
+                    <div class="ws-item-info">
+                        <h4 class="ws-item-title">Big Shot - Metal Remix</h4>
+                        <p class="ws-item-author">por <strong>SusieFanBR</strong></p>
+                        <div class="ws-item-meta">
+                            <span class="ws-item-rating">★★★★★</span>
+                            <span class="ws-item-downloads">⬇ 3.1k</span>
+                        </div>
+                        <div class="ws-item-tags">
+                            <span class="ws-item-tag">Música</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="ws-item">
+                    <div class="ws-item-thumb">
+                        <div class="ws-item-thumb-placeholder">HER</div>
+                    </div>
+                    <div class="ws-item-info">
+                        <h4 class="ws-item-title">DeltaPack - Sprite Editor</h4>
+                        <p class="ws-item-author">por <strong>ToolMaster</strong></p>
+                        <div class="ws-item-meta">
+                            <span class="ws-item-rating">★★★★☆</span>
+                            <span class="ws-item-downloads">⬇ 978</span>
+                        </div>
+                        <div class="ws-item-tags">
+                            <span class="ws-item-tag">Herramientas</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="ws-item">
+                    <div class="ws-item-thumb">
+                        <div class="ws-item-thumb-placeholder">TRAD</div>
+                        <span class="ws-item-badge new">Nuevo</span>
+                    </div>
+                    <div class="ws-item-info">
+                        <h4 class="ws-item-title">Español Latino - Cap 3</h4>
+                        <p class="ws-item-author">por <strong>TeamDeltaAR</strong></p>
+                        <div class="ws-item-meta">
+                            <span class="ws-item-rating">★★★★★</span>
+                            <span class="ws-item-downloads">⬇ 5.6k</span>
+                        </div>
+                        <div class="ws-item-tags">
+                            <span class="ws-item-tag">Traducciones</span>
+                            <span class="ws-item-tag">Cap. 3</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="ws-item">
+                    <div class="ws-item-thumb">
+                        <div class="ws-item-thumb-placeholder">MOD</div>
+                    </div>
+                    <div class="ws-item-info">
+                        <h4 class="ws-item-title">Surveilstar Overhaul</h4>
+                        <p class="ws-item-author">por <strong>RalseiDev</strong></p>
+                        <div class="ws-item-meta">
+                            <span class="ws-item-rating">★★★★☆</span>
+                            <span class="ws-item-downloads">⬇ 432</span>
+                        </div>
+                        <div class="ws-item-tags">
+                            <span class="ws-item-tag">Mods</span>
+                            <span class="ws-item-tag">Cap. 2</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="ws-item">
+                    <div class="ws-item-thumb">
+                        <div class="ws-item-thumb-placeholder">MOD</div>
+                        <span class="ws-item-badge popular">Popular</span>
+                    </div>
+                    <div class="ws-item-info">
+                        <h4 class="ws-item-title">Snowgrave Route Extended</h4>
+                        <p class="ws-item-author">por <strong>NoelleFan</strong></p>
+                        <div class="ws-item-meta">
+                            <span class="ws-item-rating">★★★★★</span>
+                            <span class="ws-item-downloads">⬇ 4.8k</span>
+                        </div>
+                        <div class="ws-item-tags">
+                            <span class="ws-item-tag">Mods</span>
+                            <span class="ws-item-tag">Sugerencia</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="ws-item">
+                    <div class="ws-item-thumb">
+                        <div class="ws-item-thumb-placeholder">SPRITE</div>
+                    </div>
+                    <div class="ws-item-info">
+                        <h4 class="ws-item-title">Custom Party Members Pack</h4>
+                        <p class="ws-item-author">por <strong>PixelArtDelt</strong></p>
+                        <div class="ws-item-meta">
+                            <span class="ws-item-rating">★★★★☆</span>
+                            <span class="ws-item-downloads">⬇ 671</span>
+                        </div>
+                        <div class="ws-item-tags">
+                            <span class="ws-item-tag">Sprites</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="ws-item">
+                    <div class="ws-item-thumb">
+                        <div class="ws-item-thumb-placeholder">MOD</div>
+                    </div>
+                    <div class="ws-item-info">
+                        <h4 class="ws-item-title">Audio Fix - Cap 3 Soundtrack</h4>
+                        <p class="ws-item-author">por <strong>AudioDelt</strong></p>
+                        <div class="ws-item-meta">
+                            <span class="ws-item-rating">★★★☆☆</span>
+                            <span class="ws-item-downloads">⬇ 203</span>
+                        </div>
+                        <div class="ws-item-tags">
+                            <span class="ws-item-tag">Bugfix</span>
+                            <span class="ws-item-tag">Cap. 3</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="ws-item">
+                    <div class="ws-item-thumb">
+                        <div class="ws-item-thumb-placeholder">MUS</div>
+                    </div>
+                    <div class="ws-item-info">
+                        <h4 class="ws-item-title">Attack of the Sentinel - 8bit</h4>
+                        <p class="ws-item-author">por <strong>Ch1pxl</strong></p>
+                        <div class="ws-item-meta">
+                            <span class="ws-item-rating">★★★★☆</span>
+                            <span class="ws-item-downloads">⬇ 589</span>
+                        </div>
+                        <div class="ws-item-tags">
+                            <span class="ws-item-tag">Música</span>
+                            <span class="ws-item-tag">Cap. 1</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="ws-item">
+                    <div class="ws-item-thumb">
+                        <div class="ws-item-thumb-placeholder">SAVE</div>
+                        <span class="ws-item-badge new">Nuevo</span>
+                    </div>
+                    <div class="ws-item-info">
+                        <h4 class="ws-item-title">TP Max - Todas las rutas</h4>
+                        <p class="ws-item-author">por <strong>SavePro</strong></p>
+                        <div class="ws-item-meta">
+                            <span class="ws-item-rating">★★★★★</span>
+                            <span class="ws-item-downloads">⬇ 1.8k</span>
+                        </div>
+                        <div class="ws-item-tags">
+                            <span class="ws-item-tag">Saves</span>
+                            <span class="ws-item-tag">Cap. 2</span>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+
+            <!-- PAGINACIÓN -->
+            <div class="ws-pagination">
+                <button class="ws-page-btn active">1</button>
+                <button class="ws-page-btn">2</button>
+                <button class="ws-page-btn">3</button>
+                <span class="ws-page-dots">...</span>
+                <button class="ws-page-btn">8</button>
+                <button class="ws-page-btn ws-page-next">→</button>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Deltahub. Todos los derechos reservados.</p>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
