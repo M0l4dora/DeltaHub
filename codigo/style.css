@@ -64,6 +64,19 @@ body::before{
     transform: scale(1.05); /* Evita que se vean bordes blancos por el blur */
 }
 
+ .workshop::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image: url("/codigo/imagenes/fondo2.gif");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    filter: blur(20px) brightness(0.35); /* Menos brillo para que el texto resalte más */
+    transform: scale(1.05); /* Evita que se vean bordes blancos por el blur */
+}
+
 header{
     display: flex;
      flex-wrap: wrap;
