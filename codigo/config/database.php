@@ -15,8 +15,6 @@ try {
 
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    echo "Conexión a la base de datos exitosa.";
-
 } catch (PDOException $e) {
 
     die("Error de conexión: " . $e->getMessage());

@@ -75,6 +75,7 @@ $stmt->execute([
 
 // 7. Registro exitoso
 
-echo "Cuenta creada correctamente.";
+header("Location: login.html");
+exit;
 
 ?>
