@@ -27,18 +27,6 @@
 
 }
 
-.logohome{
-    text-align: center;
-    margin-top: 70px;
-
-    img{
-        width: 50%;
-         image-rendering: pixelated;       /* Para Chrome, Edge y otros */
-         image-rendering: crisp-edges;      /* Para Firefox */
-
-    }
-
-}
 
 html, body{
     min-height: 100%; /* Con height se fija el sticky del header no funciona bien */
@@ -95,8 +83,21 @@ header{
 
 }
 
+.logohome{
+    text-align: center;
+    
+
+    img{
+        width: 50%;
+         image-rendering: pixelated;       /* Para Chrome, Edge y otros */
+         image-rendering: crisp-edges;      /* Para Firefox */
+
+    }
+
+}
+
 .slogan{
-    margin-top: 10px;
+    margin-top: 0px;
     padding: 0 20px;
     text-align: center;
     color: rgb(255, 255, 255);
@@ -110,8 +111,80 @@ header{
     }
 }
 
+.info_main{
+    max-width: 1180px;
+    margin: 60px auto 60px auto;
+    padding: 22px 30px;
+    text-align: center;
+    color: rgb(255, 255, 255);
+    font-family: 'Delta2';
+    font-size: 25px;
+    line-height: 1.7;
+    background-color: rgba(20, 16, 90, 0.55);
+    border: 2px solid rgba(52, 45, 181, 0.9);
+    border-radius: 14px;
+    box-shadow: 0 0 18px rgba(0, 0, 0, 0.5);
+
+
+    p{
+        width: 100%;
+        margin: 20px auto auto auto;
+        font-size: 20px;
+        max-width: 100%;
+    }
+}
+
+.inf_main_img{
+            width: 912px;
+        height: 512px;
+        border-radius: 14px;
+        border: 2px solid rgba(52, 45, 181, 0.9);
+}
+
+.main_buttons{
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 60px;
+    margin-bottom: 95px;
+
+    .boton{
+        padding: 12px 28px;
+        background-color: rgb(255, 255, 255);
+        border-radius: 10px;
+        border: 3px solid rgb(0, 0, 0);
+        color: rgb(0, 0, 0);
+        font-family: 'Delta2';
+        font-size: 20px;
+        transition-duration: 50ms;
+        cursor: url("/codigo/cursores/pointer_kris.gif"), auto;
+    }
+
+    .boton2{
+        padding: 12px 28px;
+        background-color: rgba(52, 45, 181, 0.5);
+        border-radius: 10px;
+        border: 3px solid rgba(0, 0, 0, 0.5);
+        color: white;
+        font-family: 'Delta2';
+        font-size: 20px;
+        transition-duration: 50ms;
+        cursor: url("/codigo/cursores/pointer_kris.gif"), auto;
+    }
+
+    .boton:hover{
+        transform: scale(1.05);
+        background-color: rgb(228, 228, 228);
+    }
+
+    .boton2:hover{
+        transform: scale(1.05);
+        background-color: rgb(66, 58, 220);
+    }
+}
+
 .titulos{
-    margin-top: 45px;
+    margin-top: 80px;
     text-align: center;
     color: rgb(255, 255, 255);
     font-family: 'Delta2';
@@ -124,34 +197,7 @@ header{
     }
 }
 
-.info_main{
-    max-width: 1180px;
-    margin: 40px auto 60px auto;
-    padding: 22px 30px;
-    background-color: rgba(20, 16, 90, 1);
-    border: 2px solid rgba(52, 45, 181, 0.9);
-    box-shadow: 0 0 18px rgba(0, 0, 0, 0.5);
-    text-align: center;
-    color: rgb(255, 255, 255);
-    font-family: 'Delta2';
-    font-size: 25px;
-    line-height: 1.7;
-    border-radius: 14px;
 
-
-    p{
-        width: 100%;
-        margin-top: 10px;
-        margin-bottom: 10px;
-    }
-}
-
-.inf_main_img{
-            width: 912px;
-        height: 512px;
-        border-radius: 14px;
-        border: 2px solid rgba(52, 45, 181, 0.9);
-}
 
 /* ===== Footer ===== */
 footer{
@@ -172,7 +218,7 @@ footer{
     display: flex;
     flex-direction: column;
     gap: 40px;
-    max-width: 1150px;
+    max-width: 1550px;
     margin: 0 auto 70px auto;
     padding: 0 20px;
 }
@@ -188,6 +234,7 @@ footer{
     box-shadow: 0 0 18px rgba(0, 0, 0, 0.5);
     color: rgb(255, 255, 255);
     transition-duration: 100ms;
+    margin-bottom: 80px;
 
     &:hover{
         transform: scale(1.01);
@@ -201,11 +248,11 @@ footer{
 }
 
 .feature-img{
-    flex: 0 0 45%;
+    flex: 1 1 20%;
     display: flex;
     align-items: center;
     justify-content: center;
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 16 / 12;
     border-radius: 10px;
     background-color: rgba(10, 8, 50, 0.6);
     border: 2px dashed rgba(157, 151, 255, 0.7);
@@ -230,9 +277,13 @@ footer{
     text-align: left;
 }
 
+.feature-card a{
+    font-size: 50px;
+}
+
 .feature-card h3{
     font-family: Mercy;
-    font-size: 32px;
+    font-size: 60px;
     font-weight: normal;
     letter-spacing: 1px;
     margin-bottom: 12px;
@@ -241,7 +292,7 @@ footer{
 
 .feature-card p{
     font-family: 'Delta2';
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1.7;
     color: rgba(255, 255, 255, 0.88);
 }
