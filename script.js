@@ -195,3 +195,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll(); // por si la página ya carga scrolleada
 });
+
+
+//filtrar en la workshop
+
+
+function filter(){}
+
+
