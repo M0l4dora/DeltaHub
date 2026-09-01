@@ -22,7 +22,7 @@
 *{
     margin: 0;
     padding: 0;
-    cursor: url("/codigo/cursores/cursor_kris_sword.gif"), auto;
+    cursor: url("/cursores/cursor_kris_sword.gif"), auto;
     box-sizing: border-box;
 
 }
@@ -44,7 +44,7 @@ body::before{
     position: fixed;
     inset: 0;
     z-index: -1;
-    background-image: url("/codigo/imagenes/fondo2.gif");
+    background-image: url("/imagenes/fondo2.gif");
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
@@ -57,7 +57,7 @@ body::before{
     position: fixed;
     inset: 0;
     z-index: -1;
-    background-image: url("/codigo/imagenes/fondo2.gif");
+    background-image: url("/imagenes/fondo2.gif");
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
@@ -157,7 +157,7 @@ header{
         font-family: 'Delta2';
         font-size: 20px;
         transition-duration: 50ms;
-        cursor: url("/codigo/cursores/pointer_kris.gif"), auto;
+        cursor: url("/cursores/pointer_kris.gif"), auto;
     }
 
     .boton2{
@@ -169,7 +169,7 @@ header{
         font-family: 'Delta2';
         font-size: 20px;
         transition-duration: 50ms;
-        cursor: url("/codigo/cursores/pointer_kris.gif"), auto;
+        cursor: url("/cursores/pointer_kris.gif"), auto;
     }
 
     .boton:hover{
@@ -357,7 +357,7 @@ a{
     text-decoration: none;
     color: rgb(255, 255, 255);
     font-size: 30px;
-     cursor: url("/codigo/cursores/pointer_kris.gif"), auto;
+     cursor: url("/cursores/pointer_kris.gif"), auto;
 }
 
 #shadow{
@@ -548,7 +548,7 @@ a{
     font-size: 15px;
     color: rgba(255, 255, 255, 0.8);
     transition-duration: 80ms;
-    cursor: url("/codigo/cursores/pointer_kris.gif"), auto;
+    cursor: url("/cursores/pointer_kris.gif"), auto;
 }
 
 .ws-category:hover{
@@ -585,7 +585,7 @@ a{
     font-size: 14px;
     color: rgba(255, 255, 255, 0.75);
     transition-duration: 80ms;
-    cursor: url("/codigo/cursores/pointer_kris.gif"), auto;
+    cursor: url("/cursores/pointer_kris.gif"), auto;
 }
 
 .ws-sort:hover{
@@ -615,7 +615,7 @@ a{
     font-family: 'Delta2';
     font-size: 12px;
     transition-duration: 80ms;
-    cursor: url("/codigo/cursores/pointer_kris.gif"), auto;
+    cursor: url("/cursores/pointer_kris.gif"), auto;
 }
 
 .ws-tag:hover{
@@ -695,7 +695,7 @@ a{
     font-size: 16px;
     text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
     transition-duration: 80ms;
-    cursor: url("/codigo/cursores/pointer_kris.gif"), auto;
+    cursor: url("/cursores/pointer_kris.gif"), auto;
     white-space: nowrap;
 }
 
@@ -737,7 +737,7 @@ a{
     color: rgba(255, 255, 255, 0.5);
     font-size: 16px;
     transition-duration: 80ms;
-    cursor: url("/codigo/cursores/pointer_kris.gif"), auto;
+    cursor: url("/cursores/pointer_kris.gif"), auto;
 }
 
 .ws-view-btn:hover{
@@ -919,7 +919,7 @@ a{
     font-family: 'Delta2';
     font-size: 15px;
     transition-duration: 80ms;
-    cursor: url("/codigo/cursores/pointer_kris.gif"), auto;
+    cursor: url("/cursores/pointer_kris.gif"), auto;
 }
 
 .ws-page-btn:hover{
