@@ -318,6 +318,9 @@ footer{
     transform: translateY(-50%);
     display: flex;
     gap: 30px;
+    font-size: 25px;
+    font-family: 'Delta2';
+    color: rgba(255, 255, 255, 1);
 }
 
 /* Logo chico del header: aparece volando cuando el logo grande deja de verse */
@@ -369,6 +372,8 @@ a{
     color: rgba(255, 255, 255, 0.9);
     transform: scale(1.09); /* Agranda el texto un 5% */
 }
+
+
 
 /* ===== Login / Registro ===== */
 

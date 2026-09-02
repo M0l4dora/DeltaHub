@@ -23,8 +23,8 @@ session_start();
             <img src="imagenes\DeltahubLogo3px.png" alt="logo deltahub">
         </a>
 
-        <a href="" id="shadow">Principal</a>
-        <a href="workshop.html" id="shadow">Workshop</a>
+        <a href="index.php" id="shadow">Principal</a>
+        <a href="workshop.php" id="shadow">Workshop</a>
         <a href="community.html" id="shadow">Comunidad</a>
 
         <div class="auth">
@@ -77,7 +77,7 @@ session_start();
         </div>
 
         <div class="main_buttons">
-            <a href="workshop.html" class="boton">Explorar la workshop</a>
+            <a href="workshop.php" class="boton">Explorar la workshop</a>
             <a href="community.html" class="boton2">Visita la comunidad</a>
         </div>
 
@@ -86,7 +86,7 @@ session_start();
             <article class="feature-card">
                 <div class="feature-img">IMAGEN ACÁ</div>
                 <div class="feature-text">
-                    <h3><a href="workshop.html" style="color:inherit">WORKSHOP</a></h3>
+                    <h3><a href="workshop.php" style="color:inherit">WORKSHOP</a></h3>
                     <p>
                         Navega a travez de un mar de Mods, Fangames, Soundtracks, Traducciones y más contenido customizado creado
                         por la comunidad o libera tu potencial compartiendo tu propio contenido con el fandom.
