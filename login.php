@@ -52,7 +52,7 @@ $_SESSION["rol"] = $usuario["rol"];
 
 // 5. Login exitoso
 
-header("Location: index.html");
+header("Location: index.php");
 exit;
 
 ?>
