@@ -29,9 +29,9 @@ session_start();
 
             <?php if (isset($_SESSION["usuario_id"])): ?>
 
-                <span id="shadow">
+                <a href="cuenta.php" id="shadow">
                     <?php echo htmlspecialchars($_SESSION["nombre_usuario"]); ?>
-                </span>
+                </a>
 
                 <a href="logout.php" id="shadow">
                     Logout

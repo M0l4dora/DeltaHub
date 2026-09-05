@@ -60,16 +60,17 @@ $password_hash = password_hash($password, PASSWORD_DEFAULT);
 // 6. Guardar el usuario
 
 $sql = "INSERT INTO usuarios
-        (nombre_usuario, email, password_hash)
+        (nombre_usuario, email, password_hash, avatar_url)
         VALUES
-        (:nombre_usuario, :email, :password_hash)";
+        (:nombre_usuario, :email, :password_hash, :avatar_url)";
 
 $stmt = $pdo->prepare($sql);
 
 $stmt->execute([
     ":nombre_usuario" => $nombre_usuario,
     ":email" => $email,
-    ":password_hash" => $password_hash
+    ":password_hash" => $password_hash,
+    ":avatar_url" => "Uploads/Avatars/default.jpg"
 ]);
 
 
