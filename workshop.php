@@ -166,29 +166,31 @@ $items = $pdo->query("
                         $es_nuevo = (strtotime($item['fecha_publicacion']) >= strtotime('-7 days'));
                         $tipo_label = mb_strtoupper(mb_substr($item['categoria_nombre'], 0, 4), 'UTF-8');
                     ?>
-                    <article class="ws-item" data-category="<?php echo $slug_item; ?>">
-                        <div class="ws-item-thumb">
-                            <?php if (!empty($item['imagen_portada'])): ?>
-                                <img src="<?php echo htmlspecialchars($item['imagen_portada']); ?>" alt=""
-                                     style="width:100%; height:100%; object-fit:cover;">
-                            <?php else: ?>
-                                <div class="ws-item-thumb-placeholder"><?php echo htmlspecialchars($tipo_label); ?></div>
-                            <?php endif; ?>
-                            <?php if ($es_nuevo): ?>
-                                <span class="ws-item-badge new">Nuevo</span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="ws-item-info">
-                            <h4 class="ws-item-title"><?php echo htmlspecialchars($item['titulo']); ?></h4>
-                            <p class="ws-item-author">por <strong><?php echo htmlspecialchars($item['nombre_usuario']); ?></strong></p>
-                            <div class="ws-item-meta">
-                                <span class="ws-item-downloads">⬇ <?php echo (int)$item['descargas']; ?></span>
+                    <a class="ws-item-link" href="item.php?id=<?php echo (int)$item['id']; ?>">
+                        <article class="ws-item" data-category="<?php echo $slug_item; ?>">
+                            <div class="ws-item-thumb">
+                                <?php if (!empty($item['imagen_portada'])): ?>
+                                    <img src="<?php echo htmlspecialchars($item['imagen_portada']); ?>" alt=""
+                                         style="width:100%; height:100%; object-fit:cover;">
+                                <?php else: ?>
+                                    <div class="ws-item-thumb-placeholder"><?php echo htmlspecialchars($tipo_label); ?></div>
+                                <?php endif; ?>
+                                <?php if ($es_nuevo): ?>
+                                    <span class="ws-item-badge new">Nuevo</span>
+                                <?php endif; ?>
                             </div>
-                            <div class="ws-item-tags">
-                                <span class="ws-item-tag"><?php echo htmlspecialchars($item['categoria_nombre']); ?></span>
+                            <div class="ws-item-info">
+                                <h4 class="ws-item-title"><?php echo htmlspecialchars($item['titulo']); ?></h4>
+                                <p class="ws-item-author">por <strong><?php echo htmlspecialchars($item['nombre_usuario']); ?></strong></p>
+                                <div class="ws-item-meta">
+                                    <span class="ws-item-downloads">⬇ <?php echo (int)$item['descargas']; ?></span>
+                                </div>
+                                <div class="ws-item-tags">
+                                    <span class="ws-item-tag"><?php echo htmlspecialchars($item['categoria_nombre']); ?></span>
+                                </div>
                             </div>
-                        </div>
-                    </article>
+                        </article>
+                    </a>
                 <?php endforeach; ?>
 
             </div>
