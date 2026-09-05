@@ -1,5 +1,33 @@
 <?php
 session_start();
+require_once "config/database.php";
+
+// Tu tabla `categorias` solo tiene id y nombre (sin slug ni icono),
+// así que los generamos acá para no tocar el esquema.
+function slugify($texto) {
+    $texto = mb_strtolower($texto, 'UTF-8');
+    $texto = str_replace(['á','é','í','ó','ú','ñ'], ['a','e','i','o','u','n'], $texto);
+    return preg_replace('/[^a-z0-9]+/', '', $texto);
+}
+
+$iconos_categoria = [
+    'mods' => '⚔',
+    'sprites' => '✦',
+    'saves' => '♥',
+    'musica' => '♪',
+    'herramientas' => '⚙',
+    'traducciones' => '🌐',
+];
+
+$categorias = $pdo->query("SELECT id, nombre FROM categorias ORDER BY id")->fetchAll();
+
+$items = $pdo->query("
+    SELECT items.*, usuarios.nombre_usuario, categorias.nombre AS categoria_nombre
+    FROM items
+    JOIN usuarios ON items.usuario_id = usuarios.id
+    JOIN categorias ON items.categoria_id = categorias.id
+    ORDER BY items.fecha_publicacion DESC
+")->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -63,24 +91,14 @@ session_start();
                     <li class="ws-category active" data-category="all">
                         <span class="ws-cat-icon">★</span> Todos
                     </li>
-                    <li class="ws-category" data-category="mods">
-                        <span class="ws-cat-icon">⚔</span> Mods
+                    <?php foreach ($categorias as $cat):
+                        $slug = slugify($cat['nombre']);
+                        $icono = $iconos_categoria[$slug] ?? '★';
+                    ?>
+                    <li class="ws-category" data-category="<?php echo $slug; ?>">
+                        <span class="ws-cat-icon"><?php echo $icono; ?></span> <?php echo htmlspecialchars($cat['nombre']); ?>
                     </li>
-                    <li class="ws-category" data-category="sprites">
-                        <span class="ws-cat-icon">✦</span> Sprites
-                    </li>
-                    <li class="ws-category" data-category="saves">
-                        <span class="ws-cat-icon">♥</span> Saves
-                    </li>
-                    <li class="ws-category" data-category="musica">
-                        <span class="ws-cat-icon">♪</span> Música
-                    </li>
-                    <li class="ws-category" data-category="herramientas">
-                        <span class="ws-cat-icon">⚙</span> Herramientas
-                    </li>
-                    <li class="ws-category" data-category="traducciones">
-                        <span class="ws-cat-icon">🌐</span> Traducciones
-                    </li>
+                    <?php endforeach; ?>
                 </ul>
             </div>
 
@@ -117,12 +135,16 @@ session_start();
                 <div class="ws-search-input-wrap">
                     <input type="text" id="ws-search" placeholder="Buscar en la workshop..." autocomplete="off">
                 </div>
-                <button class="ws-upload-btn">+ Subir</button>
+                <?php if (isset($_SESSION["usuario_id"])): ?>
+                    <a href="subir.php"><button class="ws-upload-btn">+ Subir</button></a>
+                <?php else: ?>
+                    <a href="login.html"><button class="ws-upload-btn">+ Subir (iniciá sesión)</button></a>
+                <?php endif; ?>
             </div>
 
             <!-- FILTROS ACTIVOS / RESULTS INFO -->
             <div class="ws-results-bar">
-                <span class="ws-results-count">Mostrando <strong>12</strong> resultados</span>
+                <span class="ws-results-count">Mostrando <strong><?php echo count($items); ?></strong> resultados</span>
                 <div class="ws-view-toggle">
                     <button class="ws-view-btn active" data-view="grid" title="Vista cuadrícula">▦</button>
                     <button class="ws-view-btn" data-view="list" title="Vista lista">☰</button>
@@ -132,223 +154,42 @@ session_start();
             <!-- GRID DE ITEMS -->
             <div class="ws-grid">
 
-                <article class="ws-item">
-                    <div class="ws-item-thumb">
-                        <div class="ws-item-thumb-placeholder">MOD</div>
-                        <span class="ws-item-badge popular">Popular</span>
-                    </div>
-                    <div class="ws-item-info">
-                        <h4 class="ws-item-title"> Chaos Cards Rebalanced</h4>
-                        <p class="ws-item-author">por <strong>KrisFan202X</strong></p>
-                        <div class="ws-item-meta">
-                            <span class="ws-item-rating">★★★★☆</span>
-                            <span class="ws-item-downloads">⬇ 1.2k</span>
-                        </div>
-                        <div class="ws-item-tags">
-                            <span class="ws-item-tag">Mods</span>
-                            <span class="ws-item-tag">Ch.2</span>
-                        </div>
-                    </div>
-                </article>
+                <?php if (empty($items)): ?>
+                    <p style="color:rgba(255,255,255,0.6); font-family:'Delta2';">
+                        Todavía no hay nada publicado. ¡Sé el primero en subir algo!
+                    </p>
+                <?php endif; ?>
 
-                <article class="ws-item">
-                    <div class="ws-item-thumb">
-                        <div class="ws-item-thumb-placeholder">SPRITE</div>
-                        <span class="ws-item-badge new">Nuevo</span>
-                    </div>
-                    <div class="ws-item-info">
-                        <h4 class="ws-item-title">Fanmade Jevil Sprite Pack</h4>
-                        <p class="ws-item-author">por <strong>DarkWorldArt</strong></p>
-                        <div class="ws-item-meta">
-                            <span class="ws-item-rating">★★★★★</span>
-                            <span class="ws-item-downloads">⬇ 856</span>
+                <?php foreach ($items as $item): ?>
+                    <?php
+                        $slug_item = slugify($item['categoria_nombre']);
+                        $es_nuevo = (strtotime($item['fecha_publicacion']) >= strtotime('-7 days'));
+                        $tipo_label = mb_strtoupper(mb_substr($item['categoria_nombre'], 0, 4), 'UTF-8');
+                    ?>
+                    <article class="ws-item" data-category="<?php echo $slug_item; ?>">
+                        <div class="ws-item-thumb">
+                            <?php if (!empty($item['imagen_portada'])): ?>
+                                <img src="<?php echo htmlspecialchars($item['imagen_portada']); ?>" alt=""
+                                     style="width:100%; height:100%; object-fit:cover;">
+                            <?php else: ?>
+                                <div class="ws-item-thumb-placeholder"><?php echo htmlspecialchars($tipo_label); ?></div>
+                            <?php endif; ?>
+                            <?php if ($es_nuevo): ?>
+                                <span class="ws-item-badge new">Nuevo</span>
+                            <?php endif; ?>
                         </div>
-                        <div class="ws-item-tags">
-                            <span class="ws-item-tag">Sprites</span>
+                        <div class="ws-item-info">
+                            <h4 class="ws-item-title"><?php echo htmlspecialchars($item['titulo']); ?></h4>
+                            <p class="ws-item-author">por <strong><?php echo htmlspecialchars($item['nombre_usuario']); ?></strong></p>
+                            <div class="ws-item-meta">
+                                <span class="ws-item-downloads">⬇ <?php echo (int)$item['descargas']; ?></span>
+                            </div>
+                            <div class="ws-item-tags">
+                                <span class="ws-item-tag"><?php echo htmlspecialchars($item['categoria_nombre']); ?></span>
+                            </div>
                         </div>
-                    </div>
-                </article>
-
-                <article class="ws-item">
-                    <div class="ws-item-thumb">
-                        <div class="ws-item-thumb-placeholder">SAVE</div>
-                    </div>
-                    <div class="ws-item-info">
-                        <h4 class="ws-item-title">Save 100% Completo - Cap 3</h4>
-                        <p class="ws-item-author">por <strong>DeltaRunner</strong></p>
-                        <div class="ws-item-meta">
-                            <span class="ws-item-rating">★★★☆☆</span>
-                            <span class="ws-item-downloads">⬇ 2.4k</span>
-                        </div>
-                        <div class="ws-item-tags">
-                            <span class="ws-item-tag">Saves</span>
-                            <span class="ws-item-tag">Ch.3</span>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="ws-item">
-                    <div class="ws-item-thumb">
-                        <div class="ws-item-thumb-placeholder">MUS</div>
-                        <span class="ws-item-badge popular">Popular</span>
-                    </div>
-                    <div class="ws-item-info">
-                        <h4 class="ws-item-title">Big Shot - Metal Remix</h4>
-                        <p class="ws-item-author">por <strong>SusieFanBR</strong></p>
-                        <div class="ws-item-meta">
-                            <span class="ws-item-rating">★★★★★</span>
-                            <span class="ws-item-downloads">⬇ 3.1k</span>
-                        </div>
-                        <div class="ws-item-tags">
-                            <span class="ws-item-tag">Música</span>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="ws-item">
-                    <div class="ws-item-thumb">
-                        <div class="ws-item-thumb-placeholder">HER</div>
-                    </div>
-                    <div class="ws-item-info">
-                        <h4 class="ws-item-title">DeltaPack - Sprite Editor</h4>
-                        <p class="ws-item-author">por <strong>ToolMaster</strong></p>
-                        <div class="ws-item-meta">
-                            <span class="ws-item-rating">★★★★☆</span>
-                            <span class="ws-item-downloads">⬇ 978</span>
-                        </div>
-                        <div class="ws-item-tags">
-                            <span class="ws-item-tag">Herramientas</span>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="ws-item">
-                    <div class="ws-item-thumb">
-                        <div class="ws-item-thumb-placeholder">TRAD</div>
-                        <span class="ws-item-badge new">Nuevo</span>
-                    </div>
-                    <div class="ws-item-info">
-                        <h4 class="ws-item-title">Español Latino - Cap 3</h4>
-                        <p class="ws-item-author">por <strong>TeamDeltaAR</strong></p>
-                        <div class="ws-item-meta">
-                            <span class="ws-item-rating">★★★★★</span>
-                            <span class="ws-item-downloads">⬇ 5.6k</span>
-                        </div>
-                        <div class="ws-item-tags">
-                            <span class="ws-item-tag">Traducciones</span>
-                            <span class="ws-item-tag">Ch.3</span>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="ws-item">
-                    <div class="ws-item-thumb">
-                        <div class="ws-item-thumb-placeholder">MOD</div>
-                    </div>
-                    <div class="ws-item-info">
-                        <h4 class="ws-item-title">Surveilstar Overhaul</h4>
-                        <p class="ws-item-author">por <strong>RalseiDev</strong></p>
-                        <div class="ws-item-meta">
-                            <span class="ws-item-rating">★★★★☆</span>
-                            <span class="ws-item-downloads">⬇ 432</span>
-                        </div>
-                        <div class="ws-item-tags">
-                            <span class="ws-item-tag">Mods</span>
-                            <span class="ws-item-tag">Ch.2</span>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="ws-item">
-                    <div class="ws-item-thumb">
-                        <div class="ws-item-thumb-placeholder">MOD</div>
-                        <span class="ws-item-badge popular">Popular</span>
-                    </div>
-                    <div class="ws-item-info">
-                        <h4 class="ws-item-title">Snowgrave Route Extended</h4>
-                        <p class="ws-item-author">por <strong>NoelleFan</strong></p>
-                        <div class="ws-item-meta">
-                            <span class="ws-item-rating">★★★★★</span>
-                            <span class="ws-item-downloads">⬇ 4.8k</span>
-                        </div>
-                        <div class="ws-item-tags">
-                            <span class="ws-item-tag">Mods</span>
-                            <span class="ws-item-tag">Sugerencia</span>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="ws-item">
-                    <div class="ws-item-thumb">
-                        <div class="ws-item-thumb-placeholder">SPRITE</div>
-                    </div>
-                    <div class="ws-item-info">
-                        <h4 class="ws-item-title">Custom Party Members Pack</h4>
-                        <p class="ws-item-author">por <strong>PixelArtDelt</strong></p>
-                        <div class="ws-item-meta">
-                            <span class="ws-item-rating">★★★★☆</span>
-                            <span class="ws-item-downloads">⬇ 671</span>
-                        </div>
-                        <div class="ws-item-tags">
-                            <span class="ws-item-tag">Sprites</span>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="ws-item">
-                    <div class="ws-item-thumb">
-                        <div class="ws-item-thumb-placeholder">MOD</div>
-                    </div>
-                    <div class="ws-item-info">
-                        <h4 class="ws-item-title">Audio Fix - Cap 3 Soundtrack</h4>
-                        <p class="ws-item-author">por <strong>AudioDelt</strong></p>
-                        <div class="ws-item-meta">
-                            <span class="ws-item-rating">★★★☆☆</span>
-                            <span class="ws-item-downloads">⬇ 203</span>
-                        </div>
-                        <div class="ws-item-tags">
-                            <span class="ws-item-tag">Bugfix</span>
-                            <span class="ws-item-tag">Ch.3</span>
-                        </div>
-                    </div>
-                </article>
-
-                <article data-category="capitulo1" class="ws-item">
-                    <div class="ws-item-thumb">
-                        <div class="ws-item-thumb-placeholder">MUS</div>
-                    </div>
-                    <div class="ws-item-info">
-                        <h4 class="ws-item-title">Attack of the Sentinel - 8bit</h4>
-                        <p class="ws-item-author">por <strong>Ch1pxl</strong></p>
-                        <div class="ws-item-meta">
-                            <span class="ws-item-rating">★★★★☆</span>
-                            <span class="ws-item-downloads">⬇ 589</span>
-                        </div>
-                        <div class="ws-item-tags">
-                            <span class="ws-item-tag">Música</span>
-                            <span class="ws-item-tag">Ch.1</span>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="ws-item">
-                    <div class="ws-item-thumb">
-                        <div class="ws-item-thumb-placeholder">SAVE</div>
-                        <span class="ws-item-badge new">Nuevo</span>
-                    </div>
-                    <div class="ws-item-info">
-                        <h4 class="ws-item-title">TP Max - Todas las rutas</h4>
-                        <p class="ws-item-author">por <strong>SavePro</strong></p>
-                        <div class="ws-item-meta">
-                            <span class="ws-item-rating">★★★★★</span>
-                            <span class="ws-item-downloads">⬇ 1.8k</span>
-                        </div>
-                        <div class="ws-item-tags">
-                            <span class="ws-item-tag">Saves</span>
-                            <span class="ws-item-tag">Ch.2</span>
-                        </div>
-                    </div>
-                </article>
+                    </article>
+                <?php endforeach; ?>
 
             </div>
 

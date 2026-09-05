@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 01-09-2026 a las 07:39:18
+-- Tiempo de generación: 05-09-2026 a las 07:54:20
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.0.30
 
@@ -36,6 +36,13 @@ CREATE TABLE `archivos` (
   `fecha_subida` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `archivos`
+--
+
+INSERT INTO `archivos` (`id`, `item_id`, `version`, `url_archivo`, `tamano_mb`, `fecha_subida`) VALUES
+(1, 1, '0.1', 'uploads/items/1_test.zip', 0.00, '2026-09-05 02:48:19');
+
 -- --------------------------------------------------------
 
 --
@@ -46,6 +53,18 @@ CREATE TABLE `categorias` (
   `id` int(11) NOT NULL,
   `nombre` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `categorias`
+--
+
+INSERT INTO `categorias` (`id`, `nombre`) VALUES
+(7, 'Mods'),
+(8, 'Sprites'),
+(9, 'Saves'),
+(10, 'Música'),
+(11, 'Herramientas'),
+(12, 'Traducciones');
 
 -- --------------------------------------------------------
 
@@ -80,6 +99,13 @@ CREATE TABLE `items` (
   `descargas` int(11) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `items`
+--
+
+INSERT INTO `items` (`id`, `usuario_id`, `categoria_id`, `titulo`, `descripcion`, `imagen_portada`, `fecha_publicacion`, `fecha_actualizacion`, `descargas`) VALUES
+(1, 9, 7, 'skibidi', 'hola soy el primer upload jeje', 'uploads/portadas/1_082081e43486700302fb1915f7f3bfaf.jpg', '2026-09-05 02:48:19', NULL, 0);
+
 -- --------------------------------------------------------
 
 --
@@ -101,7 +127,9 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `nombre_usuario`, `email`, `password_hash`, `avatar_url`, `fecha_registro`, `rol`) VALUES
-(2, 'TheFazter', 'hlynczukbenjamin@gmail.com', '$2y$10$dYsCr5O4HcutU0P4Xqj2EubnZnVmjahcng8tiDgnWdWysasxctpN.', NULL, '2026-08-31 23:53:57', 'usuario');
+(7, 'Nataliasigma', 'natytorres@gmail.com', '$2y$10$Zz788dc1Wnuip2.DkCIu9.WqLbkDE8oQK9vbpoZhwtf6QyBPOV5cW', NULL, '2026-09-02 01:57:10', 'usuario'),
+(8, 'arseniatrola', 'arseniaimbecil@gmail.com', '$2y$10$/0pBlUqJHGTEENmcw3HBeO8.UoD8UG.Vs4ckrF.w3TqWAwWDEejTi', 'uploads/avatars/avatar_8_1788574972.jpg', '2026-09-04 23:11:20', 'usuario'),
+(9, 'supersigmasanti', 'santinitot@gmail.com', '$2y$10$cUrsoZZVUepk892Noqayx.KQ.lWc.YOvZDnBvykkhiauqqmyvJOn.', 'uploads/avatars/avatar_9_1788576324.png', '2026-09-04 23:33:41', 'usuario');
 
 --
 -- Índices para tablas volcadas
@@ -152,13 +180,13 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `archivos`
 --
 ALTER TABLE `archivos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `categorias`
 --
 ALTER TABLE `categorias`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `comentarios`
@@ -170,13 +198,13 @@ ALTER TABLE `comentarios`
 -- AUTO_INCREMENT de la tabla `items`
 --
 ALTER TABLE `items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Restricciones para tablas volcadas
