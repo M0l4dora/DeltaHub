@@ -21,13 +21,32 @@ $iconos_categoria = [
 
 $categorias = $pdo->query("SELECT id, nombre FROM categorias ORDER BY id")->fetchAll();
 
-$items = $pdo->query("
+// --- Paginación ---
+$por_pagina = 12;
+$total_items = (int)$pdo->query("SELECT COUNT(*) FROM items")->fetchColumn();
+$total_paginas = max(1, (int)ceil($total_items / $por_pagina));
+
+$pagina = max(1, (int)($_GET["page"] ?? 1));
+$pagina = min($pagina, $total_paginas);
+$offset = ($pagina - 1) * $por_pagina;
+
+$stmt = $pdo->prepare("
     SELECT items.*, usuarios.nombre_usuario, categorias.nombre AS categoria_nombre
     FROM items
     JOIN usuarios ON items.usuario_id = usuarios.id
     JOIN categorias ON items.categoria_id = categorias.id
     ORDER BY items.fecha_publicacion DESC
-")->fetchAll();
+    LIMIT :limite OFFSET :desplazamiento
+");
+$stmt->bindValue(":limite", $por_pagina, PDO::PARAM_INT);
+$stmt->bindValue(":desplazamiento", $offset, PDO::PARAM_INT);
+$stmt->execute();
+$items = $stmt->fetchAll();
+
+// Página de la que partimos "pagina_inicio" hasta "pagina_fin" para el paginador
+$rango_visible = 2;
+$pagina_inicio = max(1, $pagina - $rango_visible);
+$pagina_fin = min($total_paginas, $pagina + $rango_visible);
 ?>
 
 <!DOCTYPE html>
@@ -144,7 +163,7 @@ $items = $pdo->query("
 
             <!-- FILTROS ACTIVOS / RESULTS INFO -->
             <div class="ws-results-bar">
-                <span class="ws-results-count">Mostrando <strong><?php echo count($items); ?></strong> resultados</span>
+                <span class="ws-results-count">Mostrando <strong><?php echo count($items); ?></strong> de <strong><?php echo $total_items; ?></strong> resultados</span>
                 <div class="ws-view-toggle">
                     <button class="ws-view-btn active" data-view="grid" title="Vista cuadrícula">▦</button>
                     <button class="ws-view-btn" data-view="list" title="Vista lista">☰</button>
@@ -196,14 +215,45 @@ $items = $pdo->query("
             </div>
 
             <!-- PAGINACIÓN -->
+            <?php if ($total_paginas > 1): ?>
             <div class="ws-pagination">
-                <button class="ws-page-btn active">1</button>
-                <button class="ws-page-btn">2</button>
-                <button class="ws-page-btn">3</button>
-                <span class="ws-page-dots">...</span>
-                <button class="ws-page-btn">8</button>
-                <button class="ws-page-btn ws-page-next">→</button>
+
+                <?php if ($pagina > 1): ?>
+                    <a class="ws-page-btn" href="workshop.php?page=<?php echo $pagina - 1; ?>">‹</a>
+                <?php else: ?>
+                    <span class="ws-page-btn disabled">‹</span>
+                <?php endif; ?>
+
+                <?php if ($pagina_inicio > 1): ?>
+                    <a class="ws-page-btn" href="workshop.php?page=1">1</a>
+                    <?php if ($pagina_inicio > 2): ?>
+                        <span class="ws-page-dots">...</span>
+                    <?php endif; ?>
+                <?php endif; ?>
+
+                <?php for ($p = $pagina_inicio; $p <= $pagina_fin; $p++): ?>
+                    <?php if ($p == $pagina): ?>
+                        <span class="ws-page-btn active"><?php echo $p; ?></span>
+                    <?php else: ?>
+                        <a class="ws-page-btn" href="workshop.php?page=<?php echo $p; ?>"><?php echo $p; ?></a>
+                    <?php endif; ?>
+                <?php endfor; ?>
+
+                <?php if ($pagina_fin < $total_paginas): ?>
+                    <?php if ($pagina_fin < $total_paginas - 1): ?>
+                        <span class="ws-page-dots">...</span>
+                    <?php endif; ?>
+                    <a class="ws-page-btn" href="workshop.php?page=<?php echo $total_paginas; ?>"><?php echo $total_paginas; ?></a>
+                <?php endif; ?>
+
+                <?php if ($pagina < $total_paginas): ?>
+                    <a class="ws-page-btn ws-page-next" href="workshop.php?page=<?php echo $pagina + 1; ?>">→</a>
+                <?php else: ?>
+                    <span class="ws-page-btn ws-page-next disabled">→</span>
+                <?php endif; ?>
+
             </div>
+            <?php endif; ?>
 
         </section>
 
