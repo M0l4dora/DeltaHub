@@ -197,9 +197,115 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-//filtrar en la workshop
+// ===== Workshop: filtrado por categoría, búsqueda, orden y vista =====
 
+document.addEventListener('DOMContentLoaded', () => {
+    const grid = document.querySelector('.ws-grid');
+    if (!grid) return; // no estamos en la workshop
 
-function filter(){}
+    const links = Array.from(grid.querySelectorAll('.ws-item-link'));
+    const countShow = document.getElementById('ws-count-show');
+    const countTotal = document.getElementById('ws-count-total');
+    const emptyEl = document.getElementById('ws-empty');
+    const searchInput = document.getElementById('ws-search');
+
+    const categoryItems = Array.from(document.querySelectorAll('.ws-category'));
+    const sortItems = Array.from(document.querySelectorAll('.ws-sort'));
+    const tagButtons = Array.from(document.querySelectorAll('.ws-tag'));
+    const viewButtons = Array.from(document.querySelectorAll('.ws-view-btn'));
+
+    const estado = {
+        categoria: 'all',
+        etiqueta: 'all',
+        busqueda: '',
+        orden: 'popular'
+    };
+
+    function buscarTexto(item) {
+        const q = estado.busqueda.trim().toLowerCase();
+        return !q || (item.textContent || '').toLowerCase().includes(q);
+    }
+
+    function esVisible(item) {
+        const enCategoria = estado.categoria === 'all' || item.dataset.category === estado.categoria;
+        const enEtiqueta = estado.etiqueta === 'all' || item.dataset.category === estado.etiqueta;
+        return enCategoria && enEtiqueta && buscarTexto(item);
+    }
+
+    function puntajeOrden(link) {
+        const item = link.querySelector('.ws-item');
+        if (!item) return 0;
+        switch (estado.orden) {
+            case 'reciente': {
+                const fecha = (item.dataset.fecha || '').replace(' ', 'T');
+                return new Date(fecha).getTime() || 0;
+            }
+            case 'popular':
+            case 'descargas':
+                return parseInt(item.dataset.descargas, 10) || 0;
+            default: // 'valorado': todavía no hay datos de valoración
+                return 0;
+        }
+    }
+
+    function aplicarFiltros() {
+        if (estado.orden !== 'valorado') {
+            links.slice()
+                .sort((a, b) => puntajeOrden(b) - puntajeOrden(a))
+                .forEach(link => grid.appendChild(link));
+        }
+
+        let visibles = 0;
+        links.forEach(link => {
+            const item = link.querySelector('.ws-item');
+            const mostrar = item && esVisible(item);
+            link.classList.toggle('hidden', !mostrar);
+            if (mostrar) visibles++;
+        });
+
+        if (countShow) countShow.textContent = visibles;
+        if (emptyEl) emptyEl.hidden = visibles !== 0;
+    }
+
+    categoryItems.forEach(el => {
+        el.addEventListener('click', () => {
+            estado.categoria = el.dataset.category || 'all';
+            categoryItems.forEach(c => c.classList.toggle('active', c === el));
+            aplicarFiltros();
+        });
+    });
+
+    sortItems.forEach(el => {
+        el.addEventListener('click', () => {
+            estado.orden = el.dataset.sort || 'popular';
+            sortItems.forEach(s => s.classList.toggle('active', s === el));
+            aplicarFiltros();
+        });
+    });
+
+    tagButtons.forEach(el => {
+        el.addEventListener('click', () => {
+            estado.etiqueta = el.dataset.category || 'all';
+            tagButtons.forEach(t => t.classList.toggle('active', t === el));
+            aplicarFiltros();
+        });
+    });
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            estado.busqueda = searchInput.value;
+            aplicarFiltros();
+        });
+    }
+
+    viewButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            viewButtons.forEach(b => b.classList.toggle('active', b === btn));
+            grid.classList.toggle('list-view', btn.dataset.view === 'list');
+        });
+    });
+
+    aplicarFiltros();
+});
 
 

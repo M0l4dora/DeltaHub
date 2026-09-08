@@ -956,6 +956,44 @@ a{
     font-size: 15px;
 }
 
+/* Resultados ocultos por el filtro y mensaje de "sin resultados" */
+
+.ws-item-link.hidden{
+    display: none;
+}
+
+.ws-empty{
+    font-family: 'Delta2';
+    color: rgba(255, 255, 255, 0.6);
+    padding: 30px 0;
+    text-align: center;
+}
+
+.ws-empty[hidden]{
+    display: none;
+}
+
+/* Vista lista */
+
+.ws-grid.list-view{
+    grid-template-columns: 1fr;
+}
+
+.ws-grid.list-view .ws-item{
+    flex-direction: row;
+}
+
+.ws-grid.list-view .ws-item-thumb{
+    flex: 0 0 220px;
+    aspect-ratio: auto;
+    border-bottom: none;
+    border-right: 2px solid rgba(52, 45, 181, 0.5);
+}
+
+.ws-grid.list-view .ws-item-info{
+    flex: 1;
+}
+
 
 
 /* ===== MI CUENTA ===== */

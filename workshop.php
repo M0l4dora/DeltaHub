@@ -21,32 +21,17 @@ $iconos_categoria = [
 
 $categorias = $pdo->query("SELECT id, nombre FROM categorias ORDER BY id")->fetchAll();
 
-// --- Paginación ---
-$por_pagina = 12;
+// --- Traemos todo el contenido para filtrarlo del lado del cliente (JS) ---
 $total_items = (int)$pdo->query("SELECT COUNT(*) FROM items")->fetchColumn();
-$total_paginas = max(1, (int)ceil($total_items / $por_pagina));
 
-$pagina = max(1, (int)($_GET["page"] ?? 1));
-$pagina = min($pagina, $total_paginas);
-$offset = ($pagina - 1) * $por_pagina;
-
-$stmt = $pdo->prepare("
+$stmt = $pdo->query("
     SELECT items.*, usuarios.nombre_usuario, categorias.nombre AS categoria_nombre
     FROM items
     JOIN usuarios ON items.usuario_id = usuarios.id
     JOIN categorias ON items.categoria_id = categorias.id
     ORDER BY items.fecha_publicacion DESC
-    LIMIT :limite OFFSET :desplazamiento
 ");
-$stmt->bindValue(":limite", $por_pagina, PDO::PARAM_INT);
-$stmt->bindValue(":desplazamiento", $offset, PDO::PARAM_INT);
-$stmt->execute();
 $items = $stmt->fetchAll();
-
-// Página de la que partimos "pagina_inicio" hasta "pagina_fin" para el paginador
-$rango_visible = 2;
-$pagina_inicio = max(1, $pagina - $rango_visible);
-$pagina_fin = min($total_paginas, $pagina + $rango_visible);
 ?>
 
 <!DOCTYPE html>
@@ -163,7 +148,7 @@ $pagina_fin = min($total_paginas, $pagina + $rango_visible);
 
             <!-- FILTROS ACTIVOS / RESULTS INFO -->
             <div class="ws-results-bar">
-                <span class="ws-results-count">Mostrando <strong><?php echo count($items); ?></strong> de <strong><?php echo $total_items; ?></strong> resultados</span>
+                <span class="ws-results-count">Mostrando <strong id="ws-count-show"><?php echo count($items); ?></strong> de <strong id="ws-count-total"><?php echo $total_items; ?></strong> resultados</span>
                 <div class="ws-view-toggle">
                     <button class="ws-view-btn active" data-view="grid" title="Vista cuadrícula">▦</button>
                     <button class="ws-view-btn" data-view="list" title="Vista lista">☰</button>
@@ -186,7 +171,7 @@ $pagina_fin = min($total_paginas, $pagina + $rango_visible);
                         $tipo_label = mb_strtoupper(mb_substr($item['categoria_nombre'], 0, 4), 'UTF-8');
                     ?>
                     <a class="ws-item-link" href="item.php?id=<?php echo (int)$item['id']; ?>">
-                        <article class="ws-item" data-category="<?php echo $slug_item; ?>">
+                        <article class="ws-item" data-category="<?php echo $slug_item; ?>" data-fecha="<?php echo htmlspecialchars($item['fecha_publicacion']); ?>" data-descargas="<?php echo (int)$item['descargas']; ?>">
                             <div class="ws-item-thumb">
                                 <?php if (!empty($item['imagen_portada'])): ?>
                                     <img src="<?php echo htmlspecialchars($item['imagen_portada']); ?>" alt=""
@@ -214,46 +199,9 @@ $pagina_fin = min($total_paginas, $pagina + $rango_visible);
 
             </div>
 
-            <!-- PAGINACIÓN -->
-            <?php if ($total_paginas > 1): ?>
-            <div class="ws-pagination">
-
-                <?php if ($pagina > 1): ?>
-                    <a class="ws-page-btn" href="workshop.php?page=<?php echo $pagina - 1; ?>">‹</a>
-                <?php else: ?>
-                    <span class="ws-page-btn disabled">‹</span>
-                <?php endif; ?>
-
-                <?php if ($pagina_inicio > 1): ?>
-                    <a class="ws-page-btn" href="workshop.php?page=1">1</a>
-                    <?php if ($pagina_inicio > 2): ?>
-                        <span class="ws-page-dots">...</span>
-                    <?php endif; ?>
-                <?php endif; ?>
-
-                <?php for ($p = $pagina_inicio; $p <= $pagina_fin; $p++): ?>
-                    <?php if ($p == $pagina): ?>
-                        <span class="ws-page-btn active"><?php echo $p; ?></span>
-                    <?php else: ?>
-                        <a class="ws-page-btn" href="workshop.php?page=<?php echo $p; ?>"><?php echo $p; ?></a>
-                    <?php endif; ?>
-                <?php endfor; ?>
-
-                <?php if ($pagina_fin < $total_paginas): ?>
-                    <?php if ($pagina_fin < $total_paginas - 1): ?>
-                        <span class="ws-page-dots">...</span>
-                    <?php endif; ?>
-                    <a class="ws-page-btn" href="workshop.php?page=<?php echo $total_paginas; ?>"><?php echo $total_paginas; ?></a>
-                <?php endif; ?>
-
-                <?php if ($pagina < $total_paginas): ?>
-                    <a class="ws-page-btn ws-page-next" href="workshop.php?page=<?php echo $pagina + 1; ?>">→</a>
-                <?php else: ?>
-                    <span class="ws-page-btn ws-page-next disabled">→</span>
-                <?php endif; ?>
-
-            </div>
-            <?php endif; ?>
+            <p class="ws-empty" id="ws-empty" hidden>
+                No se encontraron resultados para los filtros elegidos.
+            </p>
 
         </section>
 
