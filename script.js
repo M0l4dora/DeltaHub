@@ -203,3 +203,40 @@ document.addEventListener('DOMContentLoaded', () => {
 function filter(){}
 
 
+// ===== Intro: pantalla negra hasta que el gif llega a "Hub" =====
+
+document.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('intro-overlay');
+    const img = document.getElementById('intro-gif');
+    if (!overlay || !img) return;
+
+    const GIF_SRC = 'imagenes/DeltaHubanim.gif';  // el gif del título
+    const REVELAR_EN_MS = 3000;                    // tiempo hasta que aparece "Hub"
+    const MAX_ESPERA_MS = 10000;                   // red de seguridad
+
+    function revelar() {
+        overlay.classList.add('hidden');
+        // Después de la transición, sacarla del todo para no bloquear la página
+        overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
+        // Respaldo por si el navegador no dispara transitionend
+        setTimeout(() => overlay.remove(), 500);
+    }
+
+    let yaRevelo = false;
+    const fin = () => { if (!yaRevelo) { yaRevelo = true; revelar(); } };
+
+    // Se precarga aparte para que el gif siempre arranque desde el frame 0
+    // recién cuando aparece en pantalla, y no a mitad de animación.
+    const preload = new Image();
+    preload.onload = () => {
+        img.onload = () => setTimeout(fin, REVELAR_EN_MS);
+        img.src = GIF_SRC;
+    };
+    preload.onerror = fin; // si la intro falla, se abre la página igual
+    preload.src = GIF_SRC;
+
+    // Por si algo se traba (red lenta, etc.), nunca dejar la página en negro
+    setTimeout(fin, MAX_ESPERA_MS);
+});
+
+

@@ -199,6 +199,36 @@ header{
 
 
 
+/* ===== Intro: pantalla negra hasta que el gif llega a "Hub" ===== */
+
+.intro-overlay{
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background-color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 400ms ease;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.intro-overlay.hidden{
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.intro-overlay img{
+    width: auto;
+    max-width: 80%;
+    height: auto;
+    image-rendering: pixelated;       /* Para Chrome, Edge y otros */
+    image-rendering: crisp-edges;     /* Para Firefox */
+}
+
 /* ===== Footer ===== */
 footer{
     background-color: rgb(52, 45, 181);

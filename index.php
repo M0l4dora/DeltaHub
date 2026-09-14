@@ -17,6 +17,10 @@ session_start();
     <link rel="manifest" href="favicon\site.webmanifest" />
 </head>
 <body>
+    <div class="intro-overlay" id="intro-overlay" style="background-color:#000;">
+        <img id="intro-gif" alt="Deltahub intro">
+    </div>
+
     <header>
 
         <a href="index.php" class="header-logo" id="header-logo">
