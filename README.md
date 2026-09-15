@@ -16,23 +16,11 @@ Este proyecto esta en desarrollo activo. Algunas funciones (como el apartado de 
 - *Comunidad*: (proximamente).
 
 
-## Capas
-
-| Backend | PHP (PDO + MySQL) |
-| Base de datos | MySQL |
-| Frontend | HTML, CSS y JavaScript |
-| Sesiones | Sesiones nativas de PHP ($_SESSION) |
-| Assets | Fuentes propias (`deltarune.ttf` y `mercy.ttf`), mouse personalizado, íconos y GIFs. |
-
-
 ## Próximos pasos
 
-- Sistema de comentarios y valoraciones (Para los mods que la gente sube).
-- Filtros funcionales en la Workshop (por popularidad, fecha, valoración, descargas).
 - Búsqueda en tiempo real dentro de la Workshop.
 - La sección de Comunidad.
 - Roles de moderador/admin con panel de gestión.
-
 
 ## Licencia
 
