@@ -40,6 +40,10 @@ $no_encontrado = empty($item);
 $archivos = [];
 $comentarios = [];
 
+// Promedio de las puntuaciones que la comunidad dejó en los comentarios.
+// Si nadie puntuó todavía no se muestra nada, no se inventa un valor.
+$valoracion = null;
+
 // Comentario nuevo (POST)
 if (isset($_POST["contenido"]) && !$no_encontrado) {
     if (!isset($_SESSION["usuario_id"])) {
@@ -83,6 +87,15 @@ if (!$no_encontrado) {
     ");
     $stmt->execute([":id" => $id]);
     $comentarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($comentarios as $c) {
+        if (!empty($c["puntuacion"])) {
+            $valoracion[] = (int)$c["puntuacion"];
+        }
+    }
+    if (!empty($valoracion)) {
+        $valoracion = round(array_sum($valoracion) / count($valoracion), 1);
+    }
 
     // Avatar del autor por defecto
     if (empty($item["avatar_url"])) {
@@ -145,16 +158,22 @@ if (!$no_encontrado) {
 
         <?php if ($no_encontrado): ?>
 
-            <div class="profile-card">
-                <h1 class="profile-name">Contenido no encontrado</h1>
-                <div class="profile-divider"></div>
-                <p class="profile-value" style="margin-bottom:24px;">
+            <div class="item-missing">
+                <h1 class="item-missing-title">Contenido no encontrado</h1>
+                <p class="item-missing-text">
                     Ese contenido no existe o fue eliminado.
                 </p>
-                <a href="workshop.php" class="btn">Volver a la workshop</a>
+                <a href="workshop.php" class="item-back-link">Volver a la workshop</a>
             </div>
 
         <?php else: ?>
+
+            <!-- RUTA: dónde estoy -->
+            <nav class="item-crumbs">
+                <a href="workshop.php" class="item-crumb">Workshop</a>
+                <span class="item-crumb-sep" aria-hidden="true">/</span>
+                <span class="item-crumb-here"><?php echo htmlspecialchars($item["titulo"]); ?></span>
+            </nav>
 
             <article class="item-card">
 
@@ -170,10 +189,9 @@ if (!$no_encontrado) {
 
                 <div class="item-body">
 
-                    <div class="item-top">
-                        <h1 class="item-title"><?php echo htmlspecialchars($item["titulo"]); ?></h1>
-                        <span class="role-badge role-usuario"><?php echo htmlspecialchars($item["categoria_nombre"]); ?></span>
-                    </div>
+                    <h1 class="item-title"><?php echo htmlspecialchars($item["titulo"]); ?></h1>
+
+                    <p class="item-cat"><?php echo htmlspecialchars($item["categoria_nombre"]); ?></p>
 
                     <div class="item-meta">
                         <div class="item-author">
@@ -182,29 +200,40 @@ if (!$no_encontrado) {
                             src="<?php echo htmlspecialchars($item["avatar_url"]); ?>"
                             alt="Avatar de <?php echo htmlspecialchars($item["nombre_usuario"]); ?>"
                             >
-                            <span>por <strong><?php echo htmlspecialchars($item["nombre_usuario"]); ?></strong></span>
+                            <span><?php echo htmlspecialchars($item["nombre_usuario"]); ?></span>
                         </div>
-                        <span class="item-date">📅 <?php echo htmlspecialchars(fecha_espanol($item["fecha_publicacion"])); ?></span>
-                        <span class="item-downloads">⬇ <?php echo (int)$item["descargas"]; ?> descargas</span>
+
+                        <span class="item-date"><?php echo htmlspecialchars(fecha_espanol($item["fecha_publicacion"])); ?></span>
+
+                        <?php if ($valoracion !== null): ?>
+                            <span class="item-rate" title="Promedio de las puntuaciones de la comunidad">★ <?php echo number_format($valoracion, 1, ',', '.'); ?></span>
+                        <?php endif; ?>
+
+                        <span class="item-downloads">↓ <?php echo (int)$item["descargas"]; ?></span>
                     </div>
 
                     <?php if (!empty($item["fecha_actualizacion"])): ?>
                         <p class="item-updated">
-                            Actualizado: <?php echo htmlspecialchars(fecha_espanol($item["fecha_actualizacion"])); ?>
+                            Actualizado el <?php echo htmlspecialchars(fecha_espanol($item["fecha_actualizacion"])); ?>
                         </p>
                     <?php endif; ?>
 
-                    <div class="profile-divider"></div>
+                    <div class="item-rule"></div>
 
-                    <h2 class="profile-subtitle">Descripción</h2>
+                    <h2 class="item-section-title">Descripción</h2>
                     <p class="item-desc"><?php echo nl2br(htmlspecialchars($item["descripcion"] ?: "Sin descripción.")); ?></p>
 
-                    <div class="profile-divider"></div>
+                    <div class="item-rule"></div>
 
-                    <h2 class="profile-subtitle">Descargas</h2>
+                    <h2 class="item-section-title">
+                        Descargas
+                        <?php if (count($archivos) > 0): ?>
+                            <span class="item-section-count"><?php echo count($archivos); ?></span>
+                        <?php endif; ?>
+                    </h2>
 
                     <?php if (empty($archivos)): ?>
-                        <p class="profile-value">Este contenido todavía no tiene archivos disponibles.</p>
+                        <p class="item-note">Este contenido todavía no tiene archivos disponibles.</p>
                     <?php else: ?>
                         <div class="item-files">
                             <?php foreach ($archivos as $archivo): ?>
@@ -213,9 +242,13 @@ if (!$no_encontrado) {
                                         <span class="file-name">
                                             <?php echo htmlspecialchars(basename($archivo["url_archivo"])); ?>
                                         </span>
-                                        <span class="file-detail">v<?php echo htmlspecialchars($archivo["version"] ?? "1.0"); ?> · <?php echo (float)$archivo["tamano_mb"]; ?> MB</span>
+                                        <span class="file-detail">
+                                            v<?php echo htmlspecialchars($archivo["version"] ?? "1.0"); ?>
+                                            · <?php echo number_format((float)$archivo["tamano_mb"], 2, ',', '.'); ?> MB
+                                            · <?php echo htmlspecialchars(fecha_espanol($archivo["fecha_subida"])); ?>
+                                        </span>
                                     </div>
-                                    <a href="descargar.php?id=<?php echo (int)$item["id"]; ?>" class="btn btn-download">Descargar</a>
+                                    <a href="descargar.php?id=<?php echo (int)$item["id"]; ?>" class="btn-download">Descargar</a>
                                 </div>
                             <?php endforeach; ?>
                         </div>
@@ -227,14 +260,15 @@ if (!$no_encontrado) {
             <!-- COMENTARIOS -->
             <section class="comments-card" id="comentarios">
 
-                <h2 class="profile-subtitle">
-                    Comentarios (<?php echo count($comentarios); ?>)
+                <h2 class="item-section-title">
+                    Comentarios
+                    <?php if (count($comentarios) > 0): ?>
+                        <span class="item-section-count"><?php echo count($comentarios); ?></span>
+                    <?php endif; ?>
                 </h2>
 
                 <?php if (empty($comentarios)): ?>
-                    <p class="profile-value" style="margin-bottom:16px;">
-                        Todavía no hay comentarios. ¡Sé el primero!
-                    </p>
+                    <p class="item-note">Todavía no hay comentarios. ¡Sé el primero!</p>
                 <?php else: ?>
                     <div class="comment-list">
 
@@ -245,7 +279,7 @@ if (!$no_encontrado) {
                                 <img class="comment-avatar" src="<?php echo htmlspecialchars($avatar); ?>" alt="Avatar de <?php echo htmlspecialchars($comentario["nombre_usuario"]); ?>">
                                 <div class="comment-body">
                                     <div class="comment-head">
-                                        <span class="comment-author"><strong><?php echo htmlspecialchars($comentario["nombre_usuario"]); ?></strong></span>
+                                        <span class="comment-author"><?php echo htmlspecialchars($comentario["nombre_usuario"]); ?></span>
                                         <?php if (!empty($comentario["puntuacion"])): ?>
                                             <span class="comment-stars">
                                                 <?php
@@ -254,9 +288,9 @@ if (!$no_encontrado) {
                                                 ?>
                                             </span>
                                         <?php endif; ?>
+                                        <span class="comment-date"><?php echo htmlspecialchars(fecha_espanol($comentario["fecha"])); ?></span>
                                     </div>
                                     <p class="comment-text"><?php echo nl2br(htmlspecialchars($comentario["contenido"])); ?></p>
-                                    <span class="comment-date"><?php echo htmlspecialchars(fecha_espanol($comentario["fecha"])); ?></span>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -266,13 +300,13 @@ if (!$no_encontrado) {
 
                 <?php if (isset($_SESSION["usuario_id"])): ?>
 
-                    <div class="profile-divider"></div>
+                    <div class="item-rule"></div>
 
                     <form class="item-form" action="item.php?id=<?php echo (int)$item["id"]; ?>#comentarios" method="POST">
-                        <label class="profile-label" for="contenido">Dejá tu comentario</label>
+                        <label class="item-form-label" for="contenido">Dejá tu comentario</label>
                         <textarea id="contenido" name="contenido" rows="3" maxlength="1000" placeholder="Contá tu opinión sobre este contenido..." required></textarea>
 
-                        <label class="profile-label" for="puntuacion">Puntuación (opcional)</label>
+                        <label class="item-form-label" for="puntuacion">Puntuación (opcional)</label>
                         <select id="puntuacion" name="puntuacion">
                             <option value="">Sin puntuar</option>
                             <option value="5">★★★★★</option>
@@ -282,12 +316,12 @@ if (!$no_encontrado) {
                             <option value="1">★☆☆☆☆</option>
                         </select>
 
-                        <button type="submit" class="btn">Publicar comentario</button>
+                        <button type="submit" class="btn-submit">Publicar comentario</button>
                     </form>
 
                 <?php else: ?>
 
-                    <p class="switch" style="margin-top:16px;">
+                    <p class="item-login-hint">
                         <a href="login.html">Iniciá sesión</a> para comentar.
                     </p>
 

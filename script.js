@@ -232,28 +232,33 @@ document.addEventListener('DOMContentLoaded', () => {
         return enCategoria && enEtiqueta && buscarTexto(item);
     }
 
+    function fechaOrden(link) {
+        const item = link.querySelector('.ws-item');
+        if (!item) return 0;
+        return new Date((item.dataset.fecha || '').replace(' ', 'T')).getTime() || 0;
+    }
+
     function puntajeOrden(link) {
         const item = link.querySelector('.ws-item');
         if (!item) return 0;
         switch (estado.orden) {
-            case 'reciente': {
-                const fecha = (item.dataset.fecha || '').replace(' ', 'T');
-                return new Date(fecha).getTime() || 0;
-            }
+            case 'reciente':
+                return fechaOrden(link);
+            case 'valorado':
+                return parseFloat(item.dataset.valoracion) || 0;
             case 'popular':
             case 'descargas':
+            default:
                 return parseInt(item.dataset.descargas, 10) || 0;
-            default: // 'valorado': todavía no hay datos de valoración
-                return 0;
         }
     }
 
     function aplicarFiltros() {
-        if (estado.orden !== 'valorado') {
-            links.slice()
-                .sort((a, b) => puntajeOrden(b) - puntajeOrden(a))
-                .forEach(link => grid.appendChild(link));
-        }
+        // Desempate por fecha: si nadie tiene descargas (o valoración) el
+        // orden no queda al azar, muestra primero lo más reciente.
+        links.slice()
+            .sort((a, b) => (puntajeOrden(b) - puntajeOrden(a)) || (fechaOrden(b) - fechaOrden(a)))
+            .forEach(link => grid.appendChild(link));
 
         let visibles = 0;
         links.forEach(link => {

@@ -524,146 +524,223 @@ a{
 
 /* ===== WORKSHOP ===== */
 
-.workshop-layout{
-    display: flex;
-    gap: 25px;
-    width: 100%;
-    margin: 30px 0 60px 0;
-    /* Izq. casi pegada al borde, der. con aire para que no toque el borde */
-    padding: 0 20px 0 8px;
-    min-height: calc(100vh - 120px);
+/* Paleta y escala tipográfica de la sección.
+   Dos variables de color hacen casi todo el trabajo: superficie oscura y
+   violeta de interacción. El cyan queda reservado para un par de detalles.
+   Viven en body.workshop para que la lista y el detalle compartan sistema
+   sin repetir valores: ambas páginas usan esa clase. */
+body.workshop{
+    --ws-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --ws-pixel: 'Delta2';
+
+    --ws-ink: #eceafa;
+    --ws-ink-mid: rgba(236, 234, 250, 0.66);
+    --ws-ink-low: rgba(236, 234, 250, 0.42);
+
+    --ws-accent: #8f8aff;
+    --ws-accent-soft: rgba(143, 138, 255, 0.12);
+    --ws-cyan: #6ad2cd;
+
+    --ws-surface: rgba(11, 9, 34, 0.62);
+    --ws-surface-hi: rgba(22, 19, 58, 0.72);
+    --ws-line: rgba(150, 146, 220, 0.13);
+    --ws-line-hi: rgba(163, 158, 235, 0.26);
+
+    /* Por defecto texto limpio: la fuente pixel se pide elemento por elemento */
+    font-family: var(--ws-sans);
 }
 
-/* --- Sidebar --- */
+.workshop-layout{
+    display: flex;
+    gap: 34px;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 1500px;
+    margin: 34px auto 64px 0;
+    /* Izq. casi pegada al borde, der. con aire para que no toque el borde */
+    padding: 0 28px 0 22px;
+    min-height: calc(100vh - 120px);
+    color: var(--ws-ink);
+}
+
+/* --- Sidebar ---
+   Sin caja propia: los tres grupos se apoyan en el fondo y se separan con
+   una línea finita. Sólo el grupo activo se marca. */
 
 .ws-sidebar{
-    flex: 0 0 250px;
+    flex: 0 0 226px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
     position: sticky;
-    top: 80px;
+    top: 86px;
     align-self: flex-start;
 }
 
 .ws-sidebar-section{
-    background-color: rgba(20, 16, 90, 0.75);
-    border: 2px solid rgba(52, 45, 181, 0.8);
-    border-radius: 10px;
-    padding: 18px;
-    box-shadow: 0 0 14px rgba(0, 0, 0, 0.45);
+    padding: 0 0 20px 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--ws-line);
+}
+
+.ws-sidebar-section:last-child{
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border-bottom: none;
 }
 
 .ws-sidebar-title{
-    font-family: 'Delta2';
-    font-size: 16px;
-    font-weight: normal;
-    color: rgba(255, 255, 255, 0.65);
-    letter-spacing: 1px;
-    margin-bottom: 12px;
+    font-family: var(--ws-sans);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.6);
+    color: var(--ws-ink-low);
+    margin-bottom: 10px;
+    padding-left: 2px;
 }
 
-/* Categorías */
+/* Categorías: filas sueltas, no botones. El número a la derecha hace de
+   vista rápida sin sumar otro elemento visual. */
 
 .ws-category-list{
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 1px;
 }
 
 .ws-category{
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 7px;
-    font-family: 'Delta2';
-    font-size: 15px;
-    color: rgba(255, 255, 255, 0.8);
-    transition-duration: 80ms;
+    gap: 9px;
+    padding: 6px 8px 6px 7px;
+    margin-left: -7px;
+    border-left: 2px solid transparent;
+    border-radius: 0 3px 3px 0;
+    font-family: var(--ws-sans);
+    font-size: 14px;
+    color: var(--ws-ink-mid);
+    transition: color 130ms ease, background-color 130ms ease, border-color 130ms ease;
     cursor: url("cursores/pointer_kris.gif"), auto;
 }
 
 .ws-category:hover{
-    background-color: rgba(52, 45, 181, 0.45);
-    color: #fff;
+    background-color: rgba(143, 138, 255, 0.07);
+    color: var(--ws-ink);
 }
 
 .ws-category.active{
-    background-color: rgba(52, 45, 181, 0.8);
+    background-color: var(--ws-accent-soft);
+    border-left-color: var(--ws-accent);
     color: #fff;
-    border-left: 3px solid #7f7bff;
-    padding-left: 9px;
 }
 
 .ws-cat-icon{
-    font-size: 16px;
-    width: 20px;
+    flex: 0 0 auto;
+    width: 17px;
+    font-size: 13px;
+    line-height: 1;
     text-align: center;
+    color: var(--ws-ink-low);
+    transition: color 130ms ease;
 }
 
-/* Ordenar por */
+.ws-category:hover .ws-cat-icon,
+.ws-category.active .ws-cat-icon{
+    color: var(--ws-accent);
+}
+
+.ws-cat-name{
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ws-cat-total{
+    flex: 0 0 auto;
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+    color: rgba(236, 234, 250, 0.28);
+}
+
+.ws-category.active .ws-cat-total{
+    color: rgba(236, 234, 250, 0.6);
+}
+
+/* Ordenar por: sin iconos ni cajas, se distinguen del grupo de arriba por
+   el tamaño y el marcador de estado. */
 
 .ws-sort-list{
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
 }
 
 .ws-sort{
-    padding: 9px 12px;
-    border-radius: 7px;
-    font-family: 'Delta2';
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.75);
-    transition-duration: 80ms;
+    position: relative;
+    padding: 5px 8px 5px 18px;
+    font-family: var(--ws-sans);
+    font-size: 13px;
+    color: var(--ws-ink-low);
+    transition: color 130ms ease;
     cursor: url("cursores/pointer_kris.gif"), auto;
 }
 
+.ws-sort::before{
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    margin-top: -2.5px;
+    background-color: currentColor;
+    opacity: 0.55;
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
 .ws-sort:hover{
-    background-color: rgba(52, 45, 181, 0.4);
-    color: #fff;
+    color: var(--ws-ink);
 }
 
 .ws-sort.active{
-    background-color: rgba(52, 45, 181, 0.75);
-    color: #fff;
+    color: var(--ws-accent);
 }
 
-/* Tags / Filtros */
+/* Tags / Filtros: los únicos elementos redondeados de la columna lateral,
+   a propósito, para que se lean como filtros y no como navegación. */
 
 .ws-filter-tags{
     display: flex;
     flex-wrap: wrap;
-    gap: 7px;
+    gap: 6px;
+    padding-left: 2px;
 }
 
 .ws-tag{
-    padding: 6px 12px;
-    border-radius: 20px;
-    border: 1px solid rgba(127, 123, 255, 0.4);
-    background-color: rgba(10, 8, 50, 0.7);
-    color: rgba(255, 255, 255, 0.7);
-    font-family: 'Delta2';
-    font-size: 12px;
-    transition-duration: 80ms;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid var(--ws-line);
+    background-color: transparent;
+    color: var(--ws-ink-low);
+    font-family: var(--ws-sans);
+    font-size: 11.5px;
+    transition: color 130ms ease, border-color 130ms ease, background-color 130ms ease;
     cursor: url("cursores/pointer_kris.gif"), auto;
 }
 
 .ws-tag:hover{
-    border-color: #7f7bff;
-    color: #fff;
-    background-color: rgba(52, 45, 181, 0.5);
+    border-color: var(--ws-line-hi);
+    color: var(--ws-ink);
 }
 
 .ws-tag.active{
-    background-color: rgb(52, 45, 181);
-    border-color: #7f7bff;
-    color: #fff;
+    background-color: var(--ws-accent-soft);
+    border-color: rgba(143, 138, 255, 0.4);
+    color: var(--ws-ink);
 }
 
 /* --- Contenido principal --- */
@@ -672,73 +749,132 @@ a{
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 20px;
     min-width: 0;
+}
+
+/* Encabezado de sección: responde "dónde estoy" sin sumar otra caja */
+
+.ws-head{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-bottom: 2px;
+}
+
+.ws-head-title{
+    font-family: var(--ws-pixel);
+    font-size: 30px;
+    font-weight: normal;
+    line-height: 1.15;
+    color: #fff;
+    text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
+}
+
+.ws-head-sub{
+    font-family: var(--ws-sans);
+    font-size: 13.5px;
+    color: var(--ws-ink-low);
 }
 
 /* Barra de búsqueda */
 
 .ws-searchbar{
     display: flex;
-    gap: 12px;
-    align-items: center;
+    gap: 10px;
+    align-items: stretch;
 }
 
 .ws-search-input-wrap{
     flex: 1;
     display: flex;
     align-items: center;
-    gap: 10px;
-    background-color: rgba(10, 8, 50, 0.85);
-    border: 2px solid rgba(52, 45, 181, 0.8);
-    border-radius: 10px;
-    padding: 0 16px;
-    transition-duration: 100ms;
+    gap: 11px;
+    min-width: 0;
+    background-color: var(--ws-surface);
+    border: 1px solid var(--ws-line);
+    border-radius: 4px;
+    padding: 0 13px;
+    transition: border-color 140ms ease, background-color 140ms ease;
 }
 
 .ws-search-input-wrap:focus-within{
-    border-color: #7f7bff;
-    box-shadow: 0 0 12px rgba(127, 123, 255, 0.4);
+    border-color: rgba(143, 138, 255, 0.45);
+    background-color: var(--ws-surface-hi);
+    box-shadow: 0 0 0 3px rgba(143, 138, 255, 0.07);
 }
 
+/* Lupa dibujada con CSS: un círculo y un mango, sin emoji de sistema */
 .ws-search-icon{
-    font-size: 18px;
-    opacity: 0.6;
+    position: relative;
+    flex: 0 0 auto;
+    width: 13px;
+    height: 13px;
+    border: 1.5px solid rgba(236, 234, 250, 0.32);
+    border-radius: 50%;
+    transition: border-color 140ms ease;
+}
+
+.ws-search-icon::after{
+    content: "";
+    position: absolute;
+    right: -5px;
+    bottom: -3px;
+    width: 6px;
+    height: 1.5px;
+    background-color: rgba(236, 234, 250, 0.32);
+    transform: rotate(45deg);
+    transition: background-color 140ms ease;
+}
+
+.ws-search-input-wrap:focus-within .ws-search-icon{
+    border-color: rgba(143, 138, 255, 0.8);
+}
+
+.ws-search-input-wrap:focus-within .ws-search-icon::after{
+    background-color: rgba(143, 138, 255, 0.8);
 }
 
 .ws-searchbar input{
     flex: 1;
-    padding: 13px 0;
+    min-width: 0;
+    padding: 12px 0;
     background: transparent;
     border: none;
-    color: #fff;
-    font-family: 'Delta2';
-    font-size: 16px;
+    color: var(--ws-ink);
+    font-family: var(--ws-sans);
+    font-size: 14.5px;
     outline: none;
 }
 
 .ws-searchbar input::placeholder{
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(236, 234, 250, 0.3);
 }
 
+/* Acción principal de la página: la única superficie con relleno sólido.
+   Sin brillo al-around, sólo un desplazamiento de 1px al pasar por encima. */
+
 .ws-upload-btn{
-    padding: 13px 24px;
-    background-color: rgb(52, 45, 181);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
-    color: #fff;
-    font-family: 'Delta2';
-    font-size: 16px;
-    text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
-    transition-duration: 80ms;
+    padding: 0 20px;
+    background-color: rgb(66, 60, 168);
+    border: 1px solid rgba(163, 158, 235, 0.28);
+    border-radius: 4px;
+    color: #f2f1ff;
+    font-family: var(--ws-pixel);
+    font-size: 15px;
+    transition: background-color 130ms ease, border-color 130ms ease, transform 130ms ease;
     cursor: url("cursores/pointer_kris.gif"), auto;
     white-space: nowrap;
 }
 
 .ws-upload-btn:hover{
-    transform: scale(1.04);
-    background-color: rgb(66, 58, 220);
-    border-color: #7f7bff;
+    background-color: rgb(82, 75, 196);
+    border-color: rgba(163, 158, 235, 0.5);
+    transform: translateY(-1px);
+}
+
+.ws-upload-btn:active{
+    transform: translateY(0);
 }
 
 /* Barra de resultados */
@@ -747,267 +883,372 @@ a{
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 4px;
+    gap: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--ws-line);
 }
 
 .ws-results-count{
-    font-family: 'Delta2';
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.6);
-
-    strong{
-        color: rgba(255, 255, 255, 0.9);
-    }
+    font-family: var(--ws-sans);
+    font-size: 12.5px;
+    color: var(--ws-ink-low);
+    font-variant-numeric: tabular-nums;
 }
+
+.ws-results-count strong{
+    font-weight: 600;
+    color: var(--ws-ink-mid);
+}
+
+/* Un solo contorno para los dos botones: el estado activo lo marca el
+   relleno, no un borde propio. */
 
 .ws-view-toggle{
     display: flex;
-    gap: 4px;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--ws-line);
+    border-radius: 4px;
 }
 
 .ws-view-btn{
-    padding: 7px 12px;
-    background-color: rgba(20, 16, 90, 0.6);
-    border: 1px solid rgba(52, 45, 181, 0.6);
-    border-radius: 6px;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 16px;
-    transition-duration: 80ms;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 26px;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 2px;
+    color: var(--ws-ink-low);
+    font-size: 14px;
+    line-height: 1;
+    transition: color 120ms ease, background-color 120ms ease;
     cursor: url("cursores/pointer_kris.gif"), auto;
 }
 
 .ws-view-btn:hover{
-    color: #fff;
-    border-color: #7f7bff;
+    color: var(--ws-ink);
+    background-color: rgba(143, 138, 255, 0.1);
 }
 
 .ws-view-btn.active{
-    background-color: rgba(52, 45, 181, 0.7);
     color: #fff;
-    border-color: #7f7bff;
+    background-color: var(--ws-accent-soft);
 }
 
 /* Grid de items */
 
 .ws-grid{
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(auto-fill, minmax(252px, 1fr));
+    gap: 22px 18px;
 }
 
+/* Tarjeta: una sola caja, borde fino y sin brillo en reposo. La sombra es
+   apenas un peldaño para despegar la tarjeta del fondo. */
 .ws-item{
     display: flex;
     flex-direction: column;
-    background-color: rgba(20, 16, 90, 0.65);
-    border: 2px solid rgba(52, 45, 181, 0.7);
-    border-radius: 12px;
+    height: 100%;
+    background-color: var(--ws-surface);
+    border: 1px solid var(--ws-line);
+    border-radius: 4px;
     overflow: hidden;
-    transition-duration: 100ms;
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    transition: transform 140ms ease, border-color 140ms ease,
+                background-color 140ms ease, box-shadow 140ms ease;
 }
 
 .ws-item:hover{
-    transform: translateY(-4px);
-    border-color: #7f7bff;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+    transform: translateY(-2px);
+    background-color: var(--ws-surface-hi);
+    border-color: var(--ws-line-hi);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
 }
 
-/* Thumbnail */
+/* Thumbnail: es el elemento principal de la tarjeta, va a sangre y sin marco */
 
 .ws-item-thumb{
     position: relative;
     aspect-ratio: 16 / 10;
-    background-color: rgba(10, 8, 50, 0.7);
-    border-bottom: 2px solid rgba(52, 45, 181, 0.5);
+    background-color: rgba(6, 5, 22, 0.75);
+    border-bottom: 1px solid var(--ws-line);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-
-    img{
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        image-rendering: pixelated;
-        image-rendering: crisp-edges;
-    }
 }
 
+.ws-item-thumb img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    transition: filter 160ms ease;
+}
+
+.ws-item:hover .ws-item-thumb img{
+    filter: brightness(1.08);
+}
+
+/* Cuando no hay portada se muestra la categoría: es data real y evita que
+   la tarjeta se vea rota */
+.ws-item-nocover{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+}
+
+.ws-item-nocover-icon{
+    font-size: 24px;
+    line-height: 1;
+    color: rgba(236, 234, 250, 0.18);
+}
+
+.ws-item-nocover-label{
+    font-family: var(--ws-sans);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(236, 234, 250, 0.2);
+}
+
+/* La misma idea pero en la portada grande de item.php (fuera de
+   .workshop-layout, así que no hereda las variables de la sección) */
 .ws-item-thumb-placeholder{
     font-family: 'Delta2';
     font-size: 22px;
-    color: rgba(255, 255, 255, 0.2);
+    color: rgba(236, 234, 250, 0.2);
     letter-spacing: 3px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
 }
 
+/* Cyan: uno de los pocos lugares donde aparece */
 .ws-item-badge{
     position: absolute;
     top: 8px;
     left: 8px;
-    padding: 3px 10px;
-    border-radius: 5px;
-    font-family: 'Delta2';
-    font-size: 11px;
-    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 2px;
+    border: 1px solid rgba(106, 210, 205, 0.32);
+    background-color: rgba(6, 24, 30, 0.82);
+    font-family: var(--ws-sans);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    line-height: 1.6;
+    color: var(--ws-cyan);
 }
 
-.ws-item-badge.popular{
-    background-color: rgba(255, 170, 50, 0.9);
-    color: #1a1200;
-}
-
-.ws-item-badge.new{
-    background-color: rgba(100, 220, 120, 0.9);
-    color: #0a1f0e;
-}
-
-/* Info del item */
+/* Bloque de datos: título, autor y una fila de cifras al pie */
 
 .ws-item-info{
-    padding: 14px 16px 16px 16px;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    padding: 11px 13px 12px;
+}
+
+.ws-item-kicker{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+    font-family: var(--ws-sans);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.ws-item-cat{
+    position: relative;
+    padding-left: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: rgba(143, 138, 255, 0.92);
+}
+
+/* Barrita de 2px: separador, no adorno */
+.ws-item-cat::before{
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 1px;
+    bottom: 1px;
+    width: 2px;
+    background-color: var(--ws-accent);
+    opacity: 0.6;
+}
+
+.ws-item-when{
+    flex: 0 0 auto;
+    color: var(--ws-ink-low);
+    opacity: 0.75;
+    font-variant-numeric: tabular-nums;
 }
 
 .ws-item-title{
-    font-family: 'Delta2';
-    font-size: 16px;
+    font-family: var(--ws-pixel);
+    font-size: 15px;
     font-weight: normal;
+    line-height: 1.4;
     color: #fff;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    line-height: 1.3;
-    white-space: nowrap;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
     overflow: hidden;
-    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.ws-item-by{
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 9px;
+    font-family: var(--ws-sans);
+    font-size: 12.5px;
+    min-width: 0;
+}
+
+.ws-item-avatar{
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: rgba(255, 255, 255, 0.07);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
 .ws-item-author{
-    font-family: 'Delta2';
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
-
-    strong{
-        color: rgba(157, 151, 255, 0.9);
-    }
+    color: var(--ws-ink-mid);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.ws-item-meta{
+/* Cifras al pie, apoyadas contra el borde inferior de la tarjeta */
+.ws-item-stats{
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-top: 4px;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 9px;
+    border-top: 1px solid rgba(150, 146, 220, 0.1);
+    font-family: var(--ws-sans);
+    font-size: 11.5px;
+    color: var(--ws-ink-low);
+    font-variant-numeric: tabular-nums;
 }
 
-.ws-item-rating{
-    font-size: 14px;
-    color: #ffcc44;
-    letter-spacing: 1px;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
-}
-
-.ws-item-downloads{
-    font-family: 'Delta2';
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.55);
-}
-
-.ws-item-tags{
+.ws-item-stats-tail{
     display: flex;
-    gap: 6px;
-    margin-top: 6px;
-    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
 }
 
-.ws-item-tag{
-    padding: 3px 9px;
-    border-radius: 12px;
-    background-color: rgba(52, 45, 181, 0.5);
-    border: 1px solid rgba(127, 123, 255, 0.3);
-    font-family: 'Delta2';
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.65);
+.ws-stat{
+    white-space: nowrap;
 }
 
-/* Paginación */
+.ws-stat-rate{
+    color: var(--ws-cyan);
+}
+
+/* Paginación (todavía sin markup en la página: queda lista por si se usa) */
 
 .ws-pagination{
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 8px;
-    margin-top: 20px;
+    gap: 6px;
+    margin-top: 26px;
 }
 
 .ws-page-btn{
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 8px;
-    border: 1px solid rgba(52, 45, 181, 0.7);
-    background-color: rgba(20, 16, 90, 0.6);
-    color: rgba(255, 255, 255, 0.7);
-    font-family: 'Delta2';
-    font-size: 15px;
-    transition-duration: 80ms;
+    border-radius: 3px;
+    border: 1px solid var(--ws-line);
+    background-color: var(--ws-surface);
+    color: var(--ws-ink-mid);
+    font-family: var(--ws-sans);
+    font-size: 13px;
+    transition: color 130ms ease, border-color 130ms ease, background-color 130ms ease;
     cursor: url("cursores/pointer_kris.gif"), auto;
 }
 
 .ws-page-btn:hover{
-    border-color: #7f7bff;
+    border-color: var(--ws-line-hi);
     color: #fff;
-    background-color: rgba(52, 45, 181, 0.5);
+    background-color: var(--ws-surface-hi);
 }
 
 .ws-page-btn.active{
-    background-color: rgb(52, 45, 181);
-    border-color: #7f7bff;
+    background-color: var(--ws-accent-soft);
+    border-color: rgba(143, 138, 255, 0.4);
     color: #fff;
 }
 
 .ws-page-btn.disabled{
-    opacity: 0.4;
+    opacity: 0.35;
     pointer-events: none;
     cursor: url("cursores/cursor_kris_sword.gif"), auto;
 }
 
 .ws-page-next{
     width: auto;
-    padding: 0 16px;
+    padding: 0 14px;
 }
 
 .ws-page-dots{
-    color: rgba(255, 255, 255, 0.35);
-    font-family: 'Delta2';
-    font-size: 15px;
+    color: var(--ws-ink-low);
+    font-family: var(--ws-sans);
+    font-size: 13px;
 }
 
-/* Resultados ocultos por el filtro y mensaje de "sin resultados" */
+/* Resultados ocultos por el filtro y mensajes sin contenido */
 
 .ws-item-link.hidden{
     display: none;
 }
 
+.ws-nothing,
 .ws-empty{
-    font-family: 'Delta2';
-    color: rgba(255, 255, 255, 0.6);
-    padding: 30px 0;
+    grid-column: 1 / -1;
+    font-family: var(--ws-sans);
+    font-size: 14px;
+    color: var(--ws-ink-low);
+    padding: 26px 0;
     text-align: center;
+}
+
+.ws-empty{
+    padding: 8px 0 0;
 }
 
 .ws-empty[hidden]{
     display: none;
 }
 
-/* Vista lista */
+/* Vista lista: la portada se vuelve una tira y los datos se reparten */
 
 .ws-grid.list-view{
     grid-template-columns: 1fr;
+    gap: 10px;
 }
 
 .ws-grid.list-view .ws-item{
@@ -1015,18 +1256,20 @@ a{
 }
 
 .ws-grid.list-view .ws-item-thumb{
-    flex: 0 0 220px;
+    flex: 0 0 208px;
     aspect-ratio: auto;
     border-bottom: none;
-    border-right: 2px solid rgba(52, 45, 181, 0.5);
+    border-right: 1px solid var(--ws-line);
 }
 
 .ws-grid.list-view .ws-item-info{
-    flex: 1;
+    padding: 14px 16px;
 }
 
-
-
+.ws-grid.list-view .ws-item-title{
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+}
 /* ===== MI CUENTA ===== */
 
 .cuenta::before{
@@ -1253,36 +1496,76 @@ a{
 .ws-item-link{
     display: block;
     text-decoration: none;
+    /* La regla global de `a` pone 30px: la tarjeta manda su propia tipografía */
+    font-size: inherit;
+    color: inherit;
 }
 
-/* ===== ITEM / DETALLE ===== */
+/* ===== ITEM / DETALLE =====
+   Mismo sistema que la workshop: una sola caja por bloque principal, bordes
+   de 1px al 13%, listas separadas por líneas en vez de por cajas, y la fuente
+   pixel reservada para el título. Las variables heredan de body.workshop. */
 
 .item-layout{
     display: flex;
     flex-direction: column;
-    gap: 24px;
-    max-width: 1060px;
-    margin: 30px auto 60px auto;
+    gap: 26px;
+    max-width: 880px;
+    margin: 30px auto 64px auto;
     padding: 0 20px;
     min-height: calc(100vh - 120px);
+    color: var(--ws-ink);
+}
+
+/* Ruta de navegación: es lo único que está fuera de las cajas */
+
+.item-crumbs{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--ws-sans);
+    font-size: 12.5px;
+    color: var(--ws-ink-low);
+    min-width: 0;
+}
+
+.item-crumb{
+    color: var(--ws-ink-mid);
+    transition: color 130ms ease;
+}
+
+.item-crumb:hover{
+    color: var(--ws-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.item-crumb-sep{
+    opacity: 0.45;
+}
+
+.item-crumb-here{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
 }
 
 .item-card{
-    background-color: rgba(20, 16, 90, 0.88);
-    border: 3px solid rgb(52, 45, 181);
-    border-radius: 14px;
-    box-shadow: 0 0 25px rgba(0, 0, 0, 0.55);
+    background-color: var(--ws-surface);
+    border: 1px solid var(--ws-line);
+    border-radius: 4px;
     overflow: hidden;
-    color: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .item-cover{
     aspect-ratio: 16 / 7;
-    background-color: rgba(10, 8, 50, 0.8);
+    background-color: rgba(6, 5, 22, 0.75);
     display: flex;
     align-items: center;
     justify-content: center;
-    border-bottom: 2px solid rgba(52, 45, 181, 0.5);
+    border-bottom: 1px solid var(--ws-line);
     overflow: hidden;
 
     img{
@@ -1295,54 +1578,78 @@ a{
 }
 
 .item-body{
-    padding: 26px 30px 30px 30px;
+    padding: 24px 26px 28px;
     text-align: left;
 }
 
-.item-top{
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 14px;
+/* Título: la fuente pixel queda acá y en ningún otro lado de la página */
+.item-title{
+    font-family: var(--ws-pixel);
+    font-size: 30px;
+    font-weight: normal;
+    line-height: 1.25;
+    color: #fff;
+    text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
+    overflow-wrap: break-word;
 }
 
-.item-title{
-    font-family: 'Delta2';
-    font-size: 34px;
-    font-weight: normal;
-    text-shadow: 4px 4px 2px rgba(0, 0, 0, 0.6);
+/* Mismo tratamiento que la categoría en las tarjetas de la workshop:
+   barrita de 2px + mayúsculas, para que el ojo reconozca el patrón */
+.item-cat{
+    position: relative;
+    margin-top: 9px;
+    padding-left: 9px;
+    font-family: var(--ws-sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(143, 138, 255, 0.92);
+}
+
+.item-cat::before{
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 1px;
+    bottom: 1px;
+    width: 2px;
+    background-color: var(--ws-accent);
+    opacity: 0.6;
 }
 
 .item-meta{
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 18px;
-    font-family: 'Delta2';
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
+    gap: 8px 16px;
+    margin-top: 16px;
+    font-family: var(--ws-sans);
+    font-size: 12.5px;
+    color: var(--ws-ink-low);
+    font-variant-numeric: tabular-nums;
 }
 
 .item-author{
     display: flex;
     align-items: center;
-    gap: 9px;
-
-    strong{
-        color: rgba(157, 151, 255, 0.95);
-    }
+    gap: 8px;
+    color: var(--ws-ink-mid);
 }
 
 .item-author-avatar{
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 24px;
     border-radius: 50%;
-    border: 2px solid rgb(52, 45, 181);
     object-fit: cover;
+    background-color: rgba(255, 255, 255, 0.06);
     image-rendering: pixelated;
     image-rendering: crisp-edges;
+}
+
+.item-rate{
+    color: var(--ws-cyan);
 }
 
 .item-date,
@@ -1352,22 +1659,60 @@ a{
 
 .item-updated{
     margin-top: 8px;
-    font-family: 'Delta2';
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.45);
+    font-family: var(--ws-sans);
+    font-size: 12px;
+    color: var(--ws-ink-low);
+    opacity: 0.8;
+}
+
+/* Separador: una línea finita, no la barra brillante de antes */
+.item-rule{
+    height: 1px;
+    margin: 22px 0 18px;
+    background-color: var(--ws-line);
+}
+
+/* Títulos de sección: idénticos a los de la sidebar de la workshop */
+.item-section-title{
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-family: var(--ws-sans);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ws-ink-low);
+    margin-bottom: 12px;
+}
+
+.item-section-count{
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: rgba(236, 234, 250, 0.32);
 }
 
 .item-desc{
-    font-family: 'Delta2';
-    font-size: 16px;
-    line-height: 1.7;
-    color: rgba(255, 255, 255, 0.9);
+    font-family: var(--ws-sans);
+    font-size: 15px;
+    line-height: 1.75;
+    color: rgba(236, 234, 250, 0.86);
+    /* Ancho de lectura cómodo en vez de 900px de línea */
+    max-width: 68ch;
+    overflow-wrap: break-word;
 }
+
+.item-note{
+    font-family: var(--ws-sans);
+    font-size: 14px;
+    color: var(--ws-ink-low);
+}
+
+/* Archivos: lista con líneas, sin una caja por fila */
 
 .item-files{
     display: flex;
     flex-direction: column;
-    gap: 10px;
 }
 
 .file-row{
@@ -1375,11 +1720,13 @@ a{
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 14px;
-    padding: 14px 16px;
-    background-color: rgba(10, 8, 50, 0.65);
-    border: 1px solid rgba(52, 45, 181, 0.5);
-    border-radius: 8px;
+    gap: 12px;
+    padding: 13px 0;
+    border-top: 1px solid var(--ws-line);
+}
+
+.file-row:last-child{
+    border-bottom: 1px solid var(--ws-line);
 }
 
 .file-info{
@@ -1390,153 +1737,295 @@ a{
 }
 
 .file-name{
-    font-family: 'Delta2';
-    font-size: 15px;
-    color: rgba(255, 255, 255, 0.95);
-    word-break: break-all;
+    font-family: var(--ws-sans);
+    font-size: 14px;
+    color: var(--ws-ink);
+    /* break-word en vez de break-all: no parte la palabra a la mitad */
+    overflow-wrap: anywhere;
 }
 
 .file-detail{
-    font-family: 'Delta2';
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
+    font-family: var(--ws-sans);
+    font-size: 11.5px;
+    color: var(--ws-ink-low);
+    font-variant-numeric: tabular-nums;
 }
 
+/* Acción principal: mismo tratamiento que el "+ Subir" de la workshop */
 .btn-download{
     display: inline-block;
     width: auto;
-    padding: 12px 28px;
-    font-size: 20px;
-    background-color: rgb(52, 45, 181);
+    flex: 0 0 auto;
+    padding: 9px 18px;
+    font-family: var(--ws-pixel);
+    font-size: 14px;
+    background-color: rgb(66, 60, 168);
+    color: #f2f1ff;
+    border: 1px solid rgba(163, 158, 235, 0.28);
+    border-radius: 4px;
     text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 130ms ease, border-color 130ms ease, transform 130ms ease;
+    cursor: url("cursores/pointer_kris.gif"), auto;
 }
 
 .btn-download:hover{
-    transform: scale(1.04);
-    background-color: rgb(66, 58, 220);
+    background-color: rgb(82, 75, 196);
+    border-color: rgba(163, 158, 235, 0.5);
+    transform: translateY(-1px);
+}
+
+.btn-download:active{
+    transform: translateY(0);
 }
 
 /* ===== COMENTARIOS ===== */
 
 .comments-card{
-    padding: 28px 30px;
-    background-color: rgba(20, 16, 90, 0.88);
-    border: 3px solid rgb(52, 45, 181);
-    border-radius: 14px;
-    box-shadow: 0 0 25px rgba(0, 0, 0, 0.55);
-    color: white;
+    padding: 22px 26px 26px;
+    background-color: var(--ws-surface);
+    border: 1px solid var(--ws-line);
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    color: var(--ws-ink);
 }
 
+/* Los comentarios se leen como una conversación, no como tarjetas apiladas */
 .comment-list{
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    margin-top: 6px;
 }
 
 .comment-item{
     display: flex;
     gap: 12px;
-    padding: 14px 16px;
-    background-color: rgba(10, 8, 50, 0.55);
-    border: 1px solid rgba(52, 45, 181, 0.5);
-    border-radius: 8px;
+    padding: 14px 0;
+    border-top: 1px solid var(--ws-line);
 }
 
 .comment-avatar{
-    width: 38px;
-    height: 38px;
-    flex: 0 0 38px;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
     border-radius: 50%;
-    border: 2px solid rgb(52, 45, 181);
     object-fit: cover;
+    background-color: rgba(255, 255, 255, 0.06);
     image-rendering: pixelated;
     image-rendering: crisp-edges;
 }
 
 .comment-body{
     min-width: 0;
+    flex: 1;
 }
 
+/* Autor, estrellas y fecha en una sola línea: la fecha se va al extremo
+   derecho en vez de caer sola debajo del texto */
 .comment-head{
     display: flex;
     align-items: baseline;
     gap: 10px;
-    margin-bottom: 4px;
+    flex-wrap: wrap;
 }
 
 .comment-author{
-    font-family: 'Delta2';
-    font-size: 14px;
-    color: rgba(157, 151, 255, 0.95);
+    font-family: var(--ws-sans);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ws-ink);
 }
 
 .comment-stars{
-    font-size: 14px;
-    color: #ffcc44;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--ws-cyan);
     letter-spacing: 1px;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
-}
-
-.comment-text{
-    font-family: 'Delta2';
-    font-size: 14px;
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.9);
 }
 
 .comment-date{
-    display: block;
-    margin-top: 6px;
-    font-family: 'Delta2';
+    font-family: var(--ws-sans);
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--ws-ink-low);
+    opacity: 0.75;
+    margin-left: auto;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
+
+.comment-text{
+    margin-top: 5px;
+    font-family: var(--ws-sans);
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: rgba(236, 234, 250, 0.88);
+    overflow-wrap: break-word;
+}
+
+/* Nota de "sin comentarios": la lista vacía no necesita una caja propia */
+.comment-list:empty{
+    display: none;
+}
+
+/* Formulario */
 
 .item-form{
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 7px;
     text-align: left;
+}
+
+.item-form-label{
+    font-family: var(--ws-sans);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ws-ink-low);
+    margin-top: 8px;
 }
 
 .item-form textarea,
 .item-form select{
     width: 100%;
-    padding: 12px;
-    background-color: rgba(10, 8, 50, 0.9);
-    border: 2px solid rgb(52, 45, 181);
-    border-radius: 8px;
-    color: rgba(255, 255, 255, 0.9);
-    font-family: 'Delta2';
+    padding: 11px 12px;
+    background-color: rgba(6, 5, 22, 0.6);
+    border: 1px solid var(--ws-line);
+    border-radius: 4px;
+    color: var(--ws-ink);
+    font-family: var(--ws-sans);
     font-size: 14px;
     outline: none;
-    transition-duration: 100ms;
+    transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
     resize: vertical;
 }
 
 .item-form textarea:focus,
 .item-form select:focus{
-    border-color: #7f7bff;
-    box-shadow: 0 0 10px rgba(127, 123, 255, 0.5);
+    border-color: rgba(143, 138, 255, 0.45);
+    background-color: rgba(10, 8, 30, 0.7);
+    box-shadow: 0 0 0 3px rgba(143, 138, 255, 0.07);
+}
+
+.item-form textarea::placeholder{
+    color: rgba(236, 234, 250, 0.3);
 }
 
 .item-form select option{
-    background-color: rgb(20, 16, 90);
+    background-color: #14103a;
     color: #fff;
 }
 
-.item-form .btn{
-    margin-top: 8px;
+.btn-submit{
+    align-self: flex-start;
+    margin-top: 14px;
+    padding: 10px 22px;
+    font-family: var(--ws-pixel);
+    font-size: 15px;
+    background-color: rgb(66, 60, 168);
+    color: #f2f1ff;
+    border: 1px solid rgba(163, 158, 235, 0.28);
+    border-radius: 4px;
+    transition: background-color 130ms ease, border-color 130ms ease, transform 130ms ease;
+    cursor: url("cursores/pointer_kris.gif"), auto;
+}
+
+.btn-submit:hover{
+    background-color: rgb(82, 75, 196);
+    border-color: rgba(163, 158, 235, 0.5);
+    transform: translateY(-1px);
+}
+
+.btn-submit:active{
+    transform: translateY(0);
+}
+
+.item-login-hint{
+    margin-top: 14px;
+    font-family: var(--ws-sans);
+    font-size: 13.5px;
+    color: var(--ws-ink-low);
+}
+
+.item-login-hint a{
+    font-size: inherit;
+    color: var(--ws-accent);
+    transition: color 130ms ease;
+}
+
+.item-login-hint a:hover{
+    color: #b3afff;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* Estado "no encontrado" */
+
+.item-missing{
+    padding: 48px 32px 44px;
+    background-color: var(--ws-surface);
+    border: 1px solid var(--ws-line);
+    border-radius: 4px;
+    text-align: center;
+    color: var(--ws-ink);
+}
+
+.item-missing-title{
+    font-family: var(--ws-pixel);
+    font-size: 26px;
+    font-weight: normal;
+    color: #fff;
+    text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
+}
+
+.item-missing-text{
+    margin-top: 12px;
+    font-family: var(--ws-sans);
+    font-size: 14px;
+    color: var(--ws-ink-low);
+}
+
+.item-back-link{
+    display: inline-block;
+    margin-top: 22px;
+    padding: 10px 22px;
+    font-family: var(--ws-pixel);
+    font-size: 15px;
+    background-color: rgb(66, 60, 168);
+    color: #f2f1ff;
+    border: 1px solid rgba(163, 158, 235, 0.28);
+    border-radius: 4px;
+    transition: background-color 130ms ease, border-color 130ms ease, transform 130ms ease;
+    cursor: url("cursores/pointer_kris.gif"), auto;
+}
+
+.item-back-link:hover{
+    background-color: rgb(82, 75, 196);
+    border-color: rgba(163, 158, 235, 0.5);
+    transform: translateY(-1px);
 }
 
 
 
 /* --- Responsive --- */
 
+@media (max-width: 1100px){
+    .workshop-layout{
+        gap: 26px;
+    }
+
+    .ws-grid{
+        grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
+    }
+}
+
 @media (max-width: 900px){
     .workshop-layout{
         flex-direction: column;
+        align-items: stretch;
+        margin: 26px auto 48px 0;
+        padding: 0 20px 0 18px;
+        gap: 24px;
     }
 
     .ws-sidebar{
@@ -1544,57 +2033,140 @@ a{
         position: static;
         flex-direction: row;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 20px;
     }
 
+    /* Apilados en fila, los grupos se separan con una línea vertical */
     .ws-sidebar-section{
         flex: 1 1 200px;
-        min-width: 200px;
+        min-width: 180px;
+        padding: 0 20px 0 0;
+        margin-bottom: 0;
+        border-bottom: none;
+        border-right: 1px solid var(--ws-line);
+    }
+
+    .ws-sidebar-section:last-child{
+        padding-right: 0;
+        border-right: none;
     }
 
     .ws-grid{
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     }
+
+    .ws-grid.list-view .ws-item-thumb{
+        flex: 0 0 168px;
+    }
 }
 
-@media (max-width: 520px){
+@media (max-width: 620px){
+    .ws-head-title{
+        font-size: 25px;
+    }
+
     .ws-searchbar{
         flex-direction: column;
     }
 
     .ws-upload-btn{
         width: 100%;
+        padding: 11px 20px;
         text-align: center;
     }
 
+    /* Dos columnas en vez de una tarjeta gigante; el auto-fill solo cae a
+       una columna por debajo de ~430px */
     .ws-grid{
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 14px;
+    }
+
+    /* En una sola columna la tira lateral de la vista lista ya no aporta */
+    .ws-grid.list-view .ws-item-thumb{
+        flex: 0 0 132px;
+    }
+
+    .ws-grid.list-view .ws-item-title{
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
     }
 
     .ws-sidebar{
         flex-direction: column;
+        gap: 0;
     }
 
     .ws-sidebar-section{
         min-width: 0;
+        padding: 0 0 18px 0;
+        margin-bottom: 18px;
+        border-right: none;
+        border-bottom: 1px solid var(--ws-line);
+    }
+
+    .ws-sidebar-section:last-child{
+        padding-bottom: 0;
+        margin-bottom: 0;
+        border-bottom: none;
     }
 }
 
-@media (max-width: 520px){
+@media (max-width: 700px){
+    .item-layout{
+        gap: 20px;
+        margin: 22px auto 48px auto;
+        padding: 0 16px;
+    }
+
     .item-body{
-        padding: 20px 16px 24px 16px;
+        padding: 20px 18px 22px;
     }
 
     .item-title{
-        font-size: 26px;
+        font-size: 24px;
     }
 
+    /* La portada 16/7 se come media pantalla en un teléfono */
     .item-cover{
         aspect-ratio: 16 / 9;
     }
 
     .comments-card{
-        padding: 20px 16px;
+        padding: 18px 18px 20px;
+    }
+
+    .item-rule{
+        margin: 18px 0 15px;
+    }
+
+    .item-desc{
+        font-size: 14.5px;
+    }
+
+    /* La fecha pasa debajo en vez de pelear por el espacio en una línea */
+    .comment-date{
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .item-missing{
+        padding: 38px 20px 34px;
+    }
+}
+
+@media (max-width: 420px){
+    .item-meta{
+        gap: 7px 13px;
+    }
+
+    .file-row{
+        align-items: flex-start;
+    }
+
+    .btn-download{
+        width: 100%;
+        text-align: center;
     }
 }
 

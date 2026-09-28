@@ -10,22 +10,54 @@ function slugify($texto) {
     return preg_replace('/[^a-z0-9]+/', '', $texto);
 }
 
-$iconos_categoria = [
-    'mods' => '⚔',
-    'sprites' => '✦',
-    'saves' => '♥',
-    'musica' => '♪',
-    'herramientas' => '⚙',
-    'traducciones' => '🌐',
-];
 
-$categorias = $pdo->query("SELECT id, nombre FROM categorias ORDER BY id")->fetchAll();
+// Avatar del autor. Si la ruta guardada no existe (subida a mano, cambio de
+// carpeta, mayúsculas distintas...) cae en el default en vez de mostrar un ícono roto.
+function avatar_de($url) {
+    $por_defecto = "uploads/avatars/default.jpg";
+    if (!empty($url) && is_file(__DIR__ . "/" . $url)) {
+        return $url;
+    }
+    return $por_defecto;
+}
+
+// Fechas cortas y naturales para las tarjetas: "hoy", "ayer", "hace 3 días".
+// Si el contenido es muy viejo vuelve a la fecha normal, que sigue siendo real.
+function fecha_relativa($fecha) {
+    if (empty($fecha)) return "";
+
+    $dias = (int)(new DateTime($fecha))->diff(new DateTime())->format("%r%a");
+
+    if ($dias <= 0) return "hoy";
+    if ($dias === 1) return "ayer";
+    if ($dias < 7)   return "hace $dias días";
+    if ($dias < 31)  return ($dias < 14) ? "hace 1 semana" : "hace " . (int)ceil($dias / 7) . " semanas";
+    if ($dias < 365) return ($dias < 60) ? "hace 1 mes" : "hace " . (int)floor($dias / 30) . " meses";
+
+    $anios = (int)floor($dias / 365);
+    return ($anios === 1) ? "hace 1 año" : "hace $anios años";
+}
+
+// Cada categoría con la cantidad de publicaciones que tiene.
+$categorias = $pdo->query("
+    SELECT c.id, c.nombre, COUNT(i.id) AS total
+    FROM categorias c
+    LEFT JOIN items i ON i.categoria_id = c.id
+    GROUP BY c.id, c.nombre
+    ORDER BY c.id
+")->fetchAll();
 
 // --- Traemos todo el contenido para filtrarlo del lado del cliente (JS) ---
 $total_items = (int)$pdo->query("SELECT COUNT(*) FROM items")->fetchColumn();
 
 $stmt = $pdo->query("
-    SELECT items.*, usuarios.nombre_usuario, categorias.nombre AS categoria_nombre
+    SELECT items.*,
+           usuarios.nombre_usuario,
+           usuarios.avatar_url,
+           categorias.nombre AS categoria_nombre,
+           (SELECT COUNT(*) FROM comentarios WHERE comentarios.item_id = items.id) AS comentarios,
+           (SELECT AVG(puntuacion) FROM comentarios
+             WHERE comentarios.item_id = items.id AND comentarios.puntuacion IS NOT NULL) AS valoracion
     FROM items
     JOIN usuarios ON items.usuario_id = usuarios.id
     JOIN categorias ON items.categoria_id = categorias.id
@@ -93,14 +125,18 @@ $items = $stmt->fetchAll();
                 <h3 class="ws-sidebar-title">Categorías</h3>
                 <ul class="ws-category-list">
                     <li class="ws-category active" data-category="all">
-                        <span class="ws-cat-icon">★</span> Todos
+                        <span class="ws-cat-icon">★</span>
+                        <span class="ws-cat-name">Todos</span>
+                        <span class="ws-cat-total"><?php echo $total_items; ?></span>
                     </li>
                     <?php foreach ($categorias as $cat):
                         $slug = slugify($cat['nombre']);
                         $icono = $iconos_categoria[$slug] ?? '★';
                     ?>
                     <li class="ws-category" data-category="<?php echo $slug; ?>">
-                        <span class="ws-cat-icon"><?php echo $icono; ?></span> <?php echo htmlspecialchars($cat['nombre']); ?>
+                        <span class="ws-cat-icon"><?php echo $icono; ?></span>
+                        <span class="ws-cat-name"><?php echo htmlspecialchars($cat['nombre']); ?></span>
+                        <span class="ws-cat-total"><?php echo (int)$cat['total']; ?></span>
                     </li>
                     <?php endforeach; ?>
                 </ul>
@@ -134,10 +170,17 @@ $items = $stmt->fetchAll();
         <!-- CONTENIDO PRINCIPAL -->
         <section class="ws-content">
 
+            <!-- ENCABEZADO DE SECCIÓN -->
+            <div class="ws-head">
+                <h1 class="ws-head-title">Workshop</h1>
+                <p class="ws-head-sub">Todo lo que la comunidad sube al hub.</p>
+            </div>
+
             <!-- BARRA DE BÚSQUEDA -->
             <div class="ws-searchbar">
                 <div class="ws-search-input-wrap">
-                    <input type="text" id="ws-search" placeholder="Buscar en la workshop..." autocomplete="off">
+                    <span class="ws-search-icon" aria-hidden="true"></span>
+                    <input type="text" id="ws-search" placeholder="Buscar por título, autor o categoría..." autocomplete="off">
                 </div>
                 <?php if (isset($_SESSION["usuario_id"])): ?>
                     <a href="subir.php"><button class="ws-upload-btn">+ Subir</button></a>
@@ -159,39 +202,70 @@ $items = $stmt->fetchAll();
             <div class="ws-grid">
 
                 <?php if (empty($items)): ?>
-                    <p style="color:rgba(255,255,255,0.6); font-family:'Delta2';">
+                    <p class="ws-nothing">
                         Todavía no hay nada publicado. ¡Sé el primero en subir algo!
                     </p>
                 <?php endif; ?>
 
-                <?php foreach ($items as $item): ?>
-                    <?php
-                        $slug_item = slugify($item['categoria_nombre']);
-                        $es_nuevo = (strtotime($item['fecha_publicacion']) >= strtotime('-7 days'));
-                        $tipo_label = mb_strtoupper(mb_substr($item['categoria_nombre'], 0, 4), 'UTF-8');
-                    ?>
+                <?php foreach ($items as $item):
+                    $slug_item = slugify($item['categoria_nombre']);
+                    $es_nuevo = (strtotime($item['fecha_publicacion']) >= strtotime('-7 days'));
+                    $tiene_valoracion = ($item['valoracion'] !== null);
+                    $valoracion_txt = $tiene_valoracion
+                        ? number_format((float)$item['valoracion'], 1, ',', '.')
+                        : '';
+                    $comentarios = (int)$item['comentarios'];
+                ?>
                     <a class="ws-item-link" href="item.php?id=<?php echo (int)$item['id']; ?>">
-                        <article class="ws-item" data-category="<?php echo $slug_item; ?>" data-fecha="<?php echo htmlspecialchars($item['fecha_publicacion']); ?>" data-descargas="<?php echo (int)$item['descargas']; ?>">
+                        <article class="ws-item"
+                                 data-category="<?php echo $slug_item; ?>"
+                                 data-fecha="<?php echo htmlspecialchars($item['fecha_publicacion']); ?>"
+                                 data-descargas="<?php echo (int)$item['descargas']; ?>"
+                                 data-valoracion="<?php echo $tiene_valoracion ? (float)$item['valoracion'] : ''; ?>"
+                                 data-comentarios="<?php echo $comentarios; ?>">
+
                             <div class="ws-item-thumb">
                                 <?php if (!empty($item['imagen_portada'])): ?>
-                                    <img src="<?php echo htmlspecialchars($item['imagen_portada']); ?>" alt=""
-                                         style="width:100%; height:100%; object-fit:cover;">
+                                    <img src="<?php echo htmlspecialchars($item['imagen_portada']); ?>" alt="">
                                 <?php else: ?>
-                                    <div class="ws-item-thumb-placeholder"><?php echo htmlspecialchars($tipo_label); ?></div>
+                                    <div class="ws-item-nocover">
+                                        <span class="ws-item-nocover-icon"><?php echo $iconos_categoria[$slug_item] ?? '★'; ?></span>
+                                        <span class="ws-item-nocover-label"><?php echo htmlspecialchars($item['categoria_nombre']); ?></span>
+                                    </div>
                                 <?php endif; ?>
                                 <?php if ($es_nuevo): ?>
                                     <span class="ws-item-badge new">Nuevo</span>
                                 <?php endif; ?>
                             </div>
+
                             <div class="ws-item-info">
+
+                                <p class="ws-item-kicker">
+                                    <span class="ws-item-cat"><?php echo htmlspecialchars($item['categoria_nombre']); ?></span>
+                                    <span class="ws-item-when"><?php echo htmlspecialchars(fecha_relativa($item['fecha_publicacion'])); ?></span>
+                                </p>
+
                                 <h4 class="ws-item-title"><?php echo htmlspecialchars($item['titulo']); ?></h4>
-                                <p class="ws-item-author">por <strong><?php echo htmlspecialchars($item['nombre_usuario']); ?></strong></p>
-                                <div class="ws-item-meta">
-                                    <span class="ws-item-downloads">⬇ <?php echo (int)$item['descargas']; ?></span>
+
+                                <p class="ws-item-by">
+                                    <img class="ws-item-avatar"
+                                         src="<?php echo htmlspecialchars(avatar_de($item['avatar_url'])); ?>"
+                                         alt="">
+                                    <span class="ws-item-author"><?php echo htmlspecialchars($item['nombre_usuario']); ?></span>
+                                </p>
+
+                                <div class="ws-item-stats">
+                                    <span class="ws-stat ws-stat-dl">↓ <?php echo (int)$item['descargas']; ?></span>
+                                    <span class="ws-item-stats-tail">
+                                        <?php if ($tiene_valoracion): ?>
+                                            <span class="ws-stat ws-stat-rate" title="Valoración promedio de la comunidad">★ <?php echo $valoracion_txt; ?></span>
+                                        <?php endif; ?>
+                                        <?php if ($comentarios > 0): ?>
+                                            <span class="ws-stat"><?php echo $comentarios; ?> coment.</span>
+                                        <?php endif; ?>
+                                    </span>
                                 </div>
-                                <div class="ws-item-tags">
-                                    <span class="ws-item-tag"><?php echo htmlspecialchars($item['categoria_nombre']); ?></span>
-                                </div>
+
                             </div>
                         </article>
                     </a>
