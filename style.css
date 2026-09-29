@@ -528,8 +528,10 @@ a{
    Dos variables de color hacen casi todo el trabajo: superficie oscura y
    violeta de interacción. El cyan queda reservado para un par de detalles.
    Viven en body.workshop para que la lista y el detalle compartan sistema
-   sin repetir valores: ambas páginas usan esa clase. */
-body.workshop{
+   sin repetir valores: ambas páginas usan esa clase, y el perfil público
+   (body.perfil) se suma al mismo sistema porque reutiliza las tarjetas. */
+body.workshop,
+body.perfil{
     --ws-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --ws-pixel: 'Delta2';
 
@@ -947,11 +949,13 @@ body.workshop{
 }
 
 /* Tarjeta: una sola caja, borde fino y sin brillo en reposo. La sombra es
-   apenas un peldaño para despegar la tarjeta del fondo. */
+   apenas un peldaño para despegar la tarjeta del fondo. Con position:relative
+   la tarjeta pasa a ser el marco del enlace estirado del título. */
 .ws-item{
     display: flex;
     flex-direction: column;
     height: 100%;
+    position: relative;
     background-color: var(--ws-surface);
     border: 1px solid var(--ws-line);
     border-radius: 4px;
@@ -1107,6 +1111,21 @@ body.workshop{
     -webkit-box-orient: vertical;
 }
 
+/* El enlace del título se estira sobre toda la tarjeta: así el clic en cualquier
+   parte abre el contenido sin tener que repetir el href en cada elemento. El
+   autor va por encima con z-index, así su enlace sigue siendo el suyo. */
+.ws-item-title-link{
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.ws-item-title-link::after{
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
 .ws-item-by{
     display: flex;
     align-items: center;
@@ -1128,11 +1147,35 @@ body.workshop{
     image-rendering: crisp-edges;
 }
 
+/* Autor: avatar + nombre, enlazado al perfil público de quien subió la
+   publicación. font-size/color propios para no heredar el `a` global. */
 .ws-item-author{
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    max-width: 100%;
     color: var(--ws-ink-mid);
+    font-family: inherit;
+    font-size: inherit;
+    transition: color 130ms ease;
+}
+
+.ws-item-author:hover{
+    color: var(--ws-accent);
+}
+
+.ws-item-author-name{
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.ws-item-author:hover .ws-item-author-name{
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 /* Cifras al pie, apoyadas contra el borde inferior de la tarjeta */
@@ -1441,7 +1484,8 @@ body.workshop{
     margin-bottom: 20px;
 }
 
-.avatar-form input[type="file"]{
+.avatar-form input[type="file"],
+.avatar-form textarea{
     width: 100%;
     padding: 12px;
     background-color: rgba(10, 8, 50, 0.9);
@@ -1452,6 +1496,14 @@ body.workshop{
     font-size: 13px;
     cursor: url("cursores/pointer_kris.gif"), auto;
     transition-duration: 100ms;
+}
+
+/* La descripción pública se escribe a mano: necesita alto y que se pueda
+   arrastrar el borde inferior */
+.avatar-form textarea{
+    min-height: 96px;
+    resize: vertical;
+    line-height: 1.6;
 }
 
 .avatar-form input[type="file"]::file-selector-button{
@@ -1471,10 +1523,47 @@ body.workshop{
     box-shadow: 0 0 10px rgba(127, 123, 255, 0.5);
 }
 
+.avatar-form textarea:focus{
+    border-color: #7f7bff;
+    box-shadow: 0 0 10px rgba(127, 123, 255, 0.5);
+    outline: none;
+}
+
 .avatar-hint{
     font-family: 'Delta2';
     font-size: 12px;
     color: rgba(255, 255, 255, 0.45);
+}
+
+/* Avisos de la descripción pública. `small` es sólo la etiqueta: el color lo
+   pone la clase. */
+.cuenta-ok,
+.cuenta-error{
+    font-family: 'Delta2';
+    font-size: 12px;
+}
+
+.cuenta-ok{
+    color: rgba(120, 220, 160, 0.9);
+}
+
+.cuenta-error{
+    color: #ff8080;
+}
+
+/* Enlaces de texto dentro de la cuenta (por ahora, el perfil público): la
+   regla global de `a` los dejaría en 30px, así que se reinicia acá. */
+.cuenta-link{
+    font-family: 'Delta2';
+    font-size: 14px;
+    color: #b3afff;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 120ms ease;
+}
+
+.cuenta-link:hover{
+    color: #fff;
 }
 
 .btn-danger{
@@ -1493,12 +1582,16 @@ body.workshop{
 
 /* ===== TARJETA CLICABLE (workshop) ===== */
 
+/* Contenedor de la tarjeta. Es un div y no un <a> porque la tarjeta lleva
+   dos enlaces reales dentro (el contenido y el perfil del autor) y los <a>
+   anidados no son HTML válido. El clic en el resto lo resuelve script.js. */
 .ws-item-link{
     display: block;
     text-decoration: none;
     /* La regla global de `a` pone 30px: la tarjeta manda su propia tipografía */
     font-size: inherit;
     color: inherit;
+    cursor: url("cursores/pointer_kris.gif"), auto;
 }
 
 /* ===== ITEM / DETALLE =====
@@ -1630,11 +1723,19 @@ body.workshop{
     font-variant-numeric: tabular-nums;
 }
 
+/* El autor es un enlace a su perfil público: font-size propio porque la
+   regla global de `a` pondría 30px y rompería la fila de metadatos. */
 .item-author{
     display: flex;
     align-items: center;
     gap: 8px;
     color: var(--ws-ink-mid);
+    font-size: inherit;
+    transition: color 130ms ease;
+}
+
+.item-author:hover{
+    color: var(--ws-accent);
 }
 
 .item-author-avatar{
@@ -1666,14 +1767,16 @@ body.workshop{
 }
 
 /* Separador: una línea finita, no la barra brillante de antes */
-.item-rule{
+.item-rule,
+.pf-rule{
     height: 1px;
     margin: 22px 0 18px;
     background-color: var(--ws-line);
 }
 
 /* Títulos de sección: idénticos a los de la sidebar de la workshop */
-.item-section-title{
+.item-section-title,
+.pf-section-title{
     display: flex;
     align-items: baseline;
     gap: 8px;
@@ -1686,7 +1789,8 @@ body.workshop{
     margin-bottom: 12px;
 }
 
-.item-section-count{
+.item-section-count,
+.pf-section-count{
     font-size: 11px;
     letter-spacing: 0.04em;
     color: rgba(236, 234, 250, 0.32);
@@ -1833,6 +1937,11 @@ body.workshop{
     font-size: 13px;
     font-weight: 600;
     color: var(--ws-ink);
+    transition: color 130ms ease;
+}
+
+.comment-author:hover{
+    color: var(--ws-accent);
 }
 
 .comment-stars{
@@ -1961,7 +2070,8 @@ body.workshop{
 
 /* Estado "no encontrado" */
 
-.item-missing{
+.item-missing,
+.pf-missing{
     padding: 48px 32px 44px;
     background-color: var(--ws-surface);
     border: 1px solid var(--ws-line);
@@ -1970,7 +2080,8 @@ body.workshop{
     color: var(--ws-ink);
 }
 
-.item-missing-title{
+.item-missing-title,
+.pf-missing-title{
     font-family: var(--ws-pixel);
     font-size: 26px;
     font-weight: normal;
@@ -1978,14 +2089,19 @@ body.workshop{
     text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
 }
 
-.item-missing-text{
+.item-missing-text,
+.pf-missing-text{
     margin-top: 12px;
     font-family: var(--ws-sans);
     font-size: 14px;
     color: var(--ws-ink-low);
 }
 
-.item-back-link{
+/* Acción principal: mismo tratamiento que el "+ Subir" de la workshop.
+   El perfil usa la misma caja para "Editar perfil" y para volver. */
+.item-back-link,
+.pf-edit,
+.pf-back{
     display: inline-block;
     margin-top: 22px;
     padding: 10px 22px;
@@ -1999,10 +2115,406 @@ body.workshop{
     cursor: url("cursores/pointer_kris.gif"), auto;
 }
 
-.item-back-link:hover{
+.item-back-link:hover,
+.pf-edit:hover,
+.pf-back:hover{
     background-color: rgb(82, 75, 196);
     border-color: rgba(163, 158, 235, 0.5);
     transform: translateY(-1px);
+}
+
+
+
+/* ===== PERFIL PÚBLICO =====
+   Misma paleta y tokens que workshop/item (var(--ws-*), pixel sólo en
+   títulos, líneas de 1px, radius 4px). Distribución horizontal de referencia:
+   avatar a la izquierda y columna de detalles a la derecha (nombre, cifras
+   en línea, acción, bio). Las tarjetas de publicaciones se reutilizan tal
+   cual para no romper el sistema. */
+
+.perfil::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image: url("imagenes/fondo2.gif");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    filter: blur(18px) brightness(0.4);
+    transform: scale(1.05);
+}
+
+.pf-layout{
+    max-width: 940px;
+    margin: 30px auto 64px auto;
+    padding: 0 20px;
+    min-height: calc(100vh - 120px);
+    color: var(--ws-ink);
+}
+
+.pf-crumbs{
+    margin-bottom: 14px;
+}
+
+/* Hoja principal: la misma caja que .item-card, para anclar el perfil
+   sobre el fondo animado sin inventar otro lenguaje. */
+.pf-sheet{
+    background-color: var(--ws-surface);
+    border: 1px solid var(--ws-line);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+/* Banner por defecto: gris sólido a doble altura, sin decoración. */
+.pf-banner{
+    position: relative;
+    height: 296px;
+    overflow: hidden;
+    background-color: #75757e;
+    border-bottom: 1px solid var(--ws-line);
+}
+
+.pf-head{
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 28px;
+    text-align: left;
+    padding: 0 28px 26px;
+}
+
+/* Avatar solapado al banner, a la izquierda como en la referencia. */
+.pf-avatar{
+    width: 128px;
+    height: 128px;
+    flex: 0 0 auto;
+    margin-top: -64px;
+    position: relative;
+    z-index: 2;
+    padding: 3px;
+    background-color: #0b0922;
+    border-radius: 50%;
+    border: 1px solid var(--ws-line-hi);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
+}
+
+.pf-avatar-img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background-color: rgba(255,255,255,.06);
+}
+
+.pf-side{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    flex: 1;
+    padding-top: 18px;
+}
+
+.pf-id{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.pf-name{
+    margin-top: 0;
+    font-family: var(--ws-pixel);
+    font-size: 32px;
+    font-weight: normal;
+    line-height: 1.2;
+    color: #fff;
+    text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
+
+.pf-meta{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    margin-top: 6px;
+    font-family: var(--ws-sans);
+    font-size: 12.5px;
+    color: var(--ws-ink-low);
+    font-variant-numeric: tabular-nums;
+}
+
+.pf-meta-dot{
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background-color: var(--ws-ink-low);
+    opacity: .55;
+    flex: 0 0 auto;
+}
+
+/* Bio como caja de diálogo Deltarune: fondo casi negro, borde blanco
+   grueso y ▼ de "continúa". El texto usa la pixel legible del sitio. */
+.pf-bio-box{
+    position: relative;
+    width: 100%;
+    max-width: 620px;
+    margin: 14px 0 0;
+    padding: 14px 18px 18px;
+    background-color: rgba(0, 0, 0, 0.74);
+    border: 2px solid #eceafa;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45), inset 0 0 0 1px #000;
+    text-align: left;
+}
+
+.pf-bio-box::after{
+    content: "▼";
+    position: absolute;
+    right: 12px;
+    bottom: 7px;
+    font-size: 10px;
+    line-height: 1;
+    color: #fff;
+    opacity: .9;
+    animation: pf-blink 1.1s steps(2, start) infinite;
+}
+
+@keyframes pf-blink{
+    50%{ opacity: 0; }
+}
+
+.pf-bio-text{
+    font-family: 'Delta', var(--ws-pixel);
+    font-size: 16px;
+    line-height: 1.9;
+    color: #fff;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.6);
+    overflow-wrap: break-word;
+}
+
+.pf-bio-text::before{
+    content: "* ";
+    opacity: .75;
+}
+
+.pf-actions{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+/* Los botones dentro del perfil no arrastran el margin-top global. */
+.pf-actions .pf-edit,
+.pf-missing-actions .pf-back,
+.pf-missing-actions .pf-ghost,
+.pf-empty-box .pf-edit{
+    margin-top: 0;
+}
+
+.pf-ghost{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    background-color: transparent;
+    border: 1px solid var(--ws-line-hi);
+    border-radius: 4px;
+    color: var(--ws-ink-mid);
+    font-family: var(--ws-pixel);
+    font-size: 14px;
+    line-height: 1.2;
+    transition: color 130ms ease, border-color 130ms ease, background-color 130ms ease, transform 130ms ease;
+    cursor: url("cursores/pointer_kris.gif"), auto;
+    white-space: nowrap;
+}
+
+.pf-ghost:hover{
+    color: #fff;
+    border-color: rgba(143, 138, 255, 0.5);
+    background-color: rgba(143, 138, 255, 0.08);
+    transform: translateY(-1px);
+}
+
+.pf-ghost:active{
+    transform: translateY(0);
+}
+
+.pf-ghost:focus-visible,
+.pf-edit:focus-visible,
+.pf-works-link:focus-visible{
+    outline: 2px solid var(--ws-accent);
+    outline-offset: 2px;
+}
+
+/* Cifras en línea como en la referencia: número + etiqueta en la misma
+   fila, sin iconos ni separadores, parte del bloque de detalles. */
+.pf-stats{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 8px 20px;
+    margin-top: 10px;
+}
+
+.pf-stat{
+    display: inline-flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+    padding: 0;
+}
+
+.pf-stat-num{
+    font-family: var(--ws-pixel);
+    font-size: 18px;
+    line-height: 1.2;
+    color: #fff;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
+    font-variant-numeric: tabular-nums;
+    font-weight: normal;
+}
+
+.pf-stat-num.is-rate{
+    color: var(--ws-cyan);
+}
+
+.pf-stat-label{
+    font-family: var(--ws-sans);
+    font-size: 13.5px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ws-ink-mid);
+    white-space: nowrap;
+}
+
+.pf-section-title{
+    margin-bottom: 14px;
+}
+
+.pf-works{
+    margin-top: 26px;
+}
+
+.pf-works-head{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--ws-line);
+}
+
+.pf-works-head .pf-section-title{
+    margin-bottom: 0;
+}
+
+.pf-works-link{
+    flex: 0 0 auto;
+    font-family: var(--ws-sans);
+    font-size: 12.5px;
+    color: var(--ws-ink-mid);
+    transition: color 130ms ease;
+}
+
+.pf-works-link:hover{
+    color: var(--ws-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* Vacío: caja punteada como .feature-img, con CTA si es tu perfil. */
+.pf-empty-box{
+    padding: 32px 24px;
+    background-color: var(--ws-surface);
+    border: 1px dashed var(--ws-line-hi);
+    border-radius: 4px;
+    text-align: center;
+    color: var(--ws-ink);
+}
+
+.pf-empty-ico{
+    font-size: 22px;
+    line-height: 1;
+    color: rgba(236, 234, 250, 0.35);
+}
+
+.pf-empty-title{
+    margin-top: 10px;
+    font-family: var(--ws-pixel);
+    font-size: 16px;
+    font-weight: normal;
+    color: #fff;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+.pf-empty{
+    max-width: 46ch;
+    margin: 8px auto 0;
+    font-family: var(--ws-sans);
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--ws-ink-low);
+}
+
+.pf-empty-box .pf-edit{
+    margin-top: 18px;
+}
+
+.pf-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(252px, 1fr));
+    gap: 22px 18px;
+}
+
+/* 404 con alma: ★ + código pequeño + título, y dos salidas. */
+.pf-missing{
+    position: relative;
+    overflow: hidden;
+}
+
+.pf-missing-soul{
+    display: inline-block;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--ws-cyan);
+    text-shadow: 0 0 18px rgba(106, 210, 205, 0.55);
+    animation: pf-float 2.6s ease-in-out infinite;
+}
+
+@keyframes pf-float{
+    50%{ transform: translateY(-4px); }
+}
+
+.pf-missing-code{
+    margin-top: 10px;
+    font-family: var(--ws-pixel);
+    font-size: 13px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ws-accent);
+}
+
+.pf-missing-actions{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 22px;
 }
 
 
@@ -2182,5 +2694,90 @@ body.workshop{
 
     .profile-name{
         font-size: 30px;
+    }
+}
+
+@media (max-width: 620px){
+    .pf-layout{
+        margin: 22px auto 48px auto;
+        padding: 0 16px;
+    }
+
+    .pf-banner{
+        height: 216px;
+    }
+
+    .pf-head{
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0;
+        padding: 0 18px 22px;
+    }
+
+    .pf-avatar{
+        width: 96px;
+        height: 96px;
+        margin-top: -48px;
+    }
+
+    .pf-side{
+        align-items: center;
+        width: 100%;
+        padding-top: 14px;
+    }
+
+    .pf-id{
+        align-items: center;
+    }
+
+    .pf-name{
+        font-size: 26px;
+    }
+
+    .pf-meta{
+        justify-content: center;
+    }
+
+    .pf-stats{
+        justify-content: center;
+        gap: 8px 16px;
+    }
+
+    .pf-actions{
+        justify-content: center;
+    }
+
+    .pf-actions .pf-edit{
+        flex: 1 1 100%;
+    }
+
+    .pf-bio-text{
+        font-size: 15px;
+    }
+
+    .pf-works-head{
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .pf-grid{
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 14px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce){
+    .pf-bio-box::after,
+    .pf-missing-soul{
+        animation: none;
+    }
+
+    .ws-item,
+    .pf-ghost,
+    .pf-edit,
+    .pf-back{
+        transition: none;
     }
 }

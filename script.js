@@ -311,6 +311,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     aplicarFiltros();
+
+    // El contenedor de la tarjeta es un div y no un <a> porque la tarjeta
+    // lleva dos enlaces reales dentro (el contenido y el perfil del autor) y
+    // los <a> anidados no son HTML válido. El clic en el resto de la tarjeta
+    // lo lleva al item, igual que antes; el teclado usa el enlace del título.
+    grid.addEventListener('click', (e) => {
+        if (e.target.closest('a')) return; // los enlaces reales mandan
+
+        const card = e.target.closest('.ws-item-link');
+        if (!card || !card.dataset.href) return;
+
+        window.location.href = card.dataset.href;
+    });
 });
 
 

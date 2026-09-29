@@ -35,12 +35,8 @@ session_start();
 
             <?php if (isset($_SESSION["usuario_id"])): ?>
 
-            <a href="cuenta.php" id="shadow">
+            <a href="perfil.php?id=<?php echo (int)$_SESSION["usuario_id"]; ?>" id="shadow">
                 <?php echo htmlspecialchars($_SESSION["nombre_usuario"]); ?>
-            </a>
-
-            <a href="logout.php" id="shadow">
-                Logout
             </a>
 
             <?php else: ?>

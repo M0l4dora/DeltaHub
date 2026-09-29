@@ -131,12 +131,8 @@ if (!$no_encontrado) {
 
             <?php if (isset($_SESSION["usuario_id"])): ?>
 
-                <a href="cuenta.php" id="shadow">
+                <a href="perfil.php?id=<?php echo (int)$_SESSION["usuario_id"]; ?>" id="shadow">
                     <?php echo htmlspecialchars($_SESSION["nombre_usuario"]); ?>
-                </a>
-
-                <a href="logout.php" id="shadow">
-                    Logout
                 </a>
 
             <?php else: ?>
@@ -194,14 +190,16 @@ if (!$no_encontrado) {
                     <p class="item-cat"><?php echo htmlspecialchars($item["categoria_nombre"]); ?></p>
 
                     <div class="item-meta">
-                        <div class="item-author">
+                        <a class="item-author"
+                           href="perfil.php?id=<?php echo (int)$item['usuario_id']; ?>"
+                           title="Perfil de <?php echo htmlspecialchars($item['nombre_usuario']); ?>">
                             <img
                             class="item-author-avatar"
-                            src="<?php echo htmlspecialchars($item["avatar_url"]); ?>"
-                            alt="Avatar de <?php echo htmlspecialchars($item["nombre_usuario"]); ?>"
+                            src="<?php echo htmlspecialchars($item['avatar_url']); ?>"
+                            alt="Avatar de <?php echo htmlspecialchars($item['nombre_usuario']); ?>"
                             >
                             <span><?php echo htmlspecialchars($item["nombre_usuario"]); ?></span>
-                        </div>
+                        </a>
 
                         <span class="item-date"><?php echo htmlspecialchars(fecha_espanol($item["fecha_publicacion"])); ?></span>
 
@@ -279,7 +277,11 @@ if (!$no_encontrado) {
                                 <img class="comment-avatar" src="<?php echo htmlspecialchars($avatar); ?>" alt="Avatar de <?php echo htmlspecialchars($comentario["nombre_usuario"]); ?>">
                                 <div class="comment-body">
                                     <div class="comment-head">
-                                        <span class="comment-author"><?php echo htmlspecialchars($comentario["nombre_usuario"]); ?></span>
+                                        <a class="comment-author"
+                                           href="perfil.php?id=<?php echo (int)$comentario['usuario_id']; ?>"
+                                           title="Perfil de <?php echo htmlspecialchars($comentario["nombre_usuario"]); ?>">
+                                            <?php echo htmlspecialchars($comentario["nombre_usuario"]); ?>
+                                        </a>
                                         <?php if (!empty($comentario["puntuacion"])): ?>
                                             <span class="comment-stars">
                                                 <?php

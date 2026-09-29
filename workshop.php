@@ -93,12 +93,8 @@ $items = $stmt->fetchAll();
 
             <?php if (isset($_SESSION["usuario_id"])): ?>
 
-                <a href="cuenta.php" id="shadow">
+                <a href="perfil.php?id=<?php echo (int)$_SESSION["usuario_id"]; ?>" id="shadow">
                     <?php echo htmlspecialchars($_SESSION["nombre_usuario"]); ?>
-                </a>
-
-                <a href="logout.php" id="shadow">
-                    Logout
                 </a>
 
             <?php else: ?>
@@ -216,7 +212,7 @@ $items = $stmt->fetchAll();
                         : '';
                     $comentarios = (int)$item['comentarios'];
                 ?>
-                    <a class="ws-item-link" href="item.php?id=<?php echo (int)$item['id']; ?>">
+                    <div class="ws-item-link" data-href="item.php?id=<?php echo (int)$item['id']; ?>">
                         <article class="ws-item"
                                  data-category="<?php echo $slug_item; ?>"
                                  data-fecha="<?php echo htmlspecialchars($item['fecha_publicacion']); ?>"
@@ -245,13 +241,21 @@ $items = $stmt->fetchAll();
                                     <span class="ws-item-when"><?php echo htmlspecialchars(fecha_relativa($item['fecha_publicacion'])); ?></span>
                                 </p>
 
-                                <h4 class="ws-item-title"><?php echo htmlspecialchars($item['titulo']); ?></h4>
+                                <h4 class="ws-item-title">
+                                    <a class="ws-item-title-link" href="item.php?id=<?php echo (int)$item['id']; ?>">
+                                        <?php echo htmlspecialchars($item['titulo']); ?>
+                                    </a>
+                                </h4>
 
                                 <p class="ws-item-by">
-                                    <img class="ws-item-avatar"
-                                         src="<?php echo htmlspecialchars(avatar_de($item['avatar_url'])); ?>"
-                                         alt="">
-                                    <span class="ws-item-author"><?php echo htmlspecialchars($item['nombre_usuario']); ?></span>
+                                    <a class="ws-item-author"
+                                       href="perfil.php?id=<?php echo (int)$item['usuario_id']; ?>"
+                                       title="Perfil de <?php echo htmlspecialchars($item['nombre_usuario']); ?>">
+                                        <img class="ws-item-avatar"
+                                             src="<?php echo htmlspecialchars(avatar_de($item['avatar_url'])); ?>"
+                                             alt="">
+                                        <span class="ws-item-author-name"><?php echo htmlspecialchars($item['nombre_usuario']); ?></span>
+                                    </a>
                                 </p>
 
                                 <div class="ws-item-stats">
@@ -268,7 +272,7 @@ $items = $stmt->fetchAll();
 
                             </div>
                         </article>
-                    </a>
+                    </div>
                 <?php endforeach; ?>
 
             </div>

@@ -15,9 +15,38 @@ if (!isset($_SESSION["usuario_id"])) {
 
 $usuario_id = $_SESSION["usuario_id"];
 
+// `usuarios.bio` se agregó con sql/migracion_bio_usuario.sql. Se pregunta al
+// esquema en vez de darla por sentada para que la cuenta siga funcionando en
+// una base que todavía no la tenga.
+
+function columna_existe($pdo, $tabla, $columna) {
+    $stmt = $pdo->prepare("
+        SELECT COUNT(*)
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = :tabla
+          AND COLUMN_NAME = :columna
+    ");
+
+    $stmt->execute([
+        ":tabla"   => $tabla,
+        ":columna" => $columna
+    ]);
+
+    return ((int)$stmt->fetchColumn()) > 0;
+}
+
+$hay_bio = columna_existe($pdo, "usuarios", "bio");
+
 // Buscar los datos del usuario
 
-$sql = "SELECT id, nombre_usuario, email, fecha_registro, rol, avatar_url
+$columnas = "id, nombre_usuario, email, fecha_registro, rol, avatar_url";
+
+if ($hay_bio) {
+    $columnas .= ", bio";
+}
+
+$sql = "SELECT $columnas
         FROM usuarios
         WHERE id = :id
         LIMIT 1";
@@ -38,6 +67,37 @@ if (!$usuario) {
 
     header("Location: login.html");
     exit;
+}
+
+// Guardar la descripción pública (la que muestra perfil.php)
+
+$errores = [];
+$bio_guardada = false;
+$bio_texto = $hay_bio ? trim((string)($usuario["bio"] ?? "")) : "";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["bio"])) {
+
+    $bio_texto = trim($_POST["bio"]);
+
+    // El textarea ya limita a 300, pero el POST se recorta igual: no se fía
+    // del navegador para el tamaño.
+
+    if (mb_strlen($bio_texto) > 300) {
+        $bio_texto = mb_substr($bio_texto, 0, 300);
+    }
+
+    if (!$hay_bio) {
+        $errores[] = "La descripción todavía no está disponible en esta base de datos.";
+    } else {
+        $stmt = $pdo->prepare("UPDATE usuarios SET bio = :bio WHERE id = :id");
+        $stmt->execute([
+            ":bio" => $bio_texto !== "" ? $bio_texto : null,
+            ":id"  => $usuario_id
+        ]);
+
+        $bio_guardada = true;
+    }
+
 }
 
 // Avatar por defecto si el usuario no tiene uno propio
@@ -102,10 +162,9 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
         <a href="community.html" id="shadow">Comunidad</a>
 
         <div class="auth">
-            <a href="cuenta.php" id="shadow">
+            <a href="perfil.php?id=<?php echo (int)$_SESSION["usuario_id"]; ?>" id="shadow">
                 <?php echo htmlspecialchars($_SESSION["nombre_usuario"]); ?>
             </a>
-            <a href="logout.php" id="shadow">Logout</a>
         </div>
     </header>
 
@@ -129,6 +188,9 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
                     <span class="role-badge <?php echo $rol_clase; ?>">
                         <?php echo htmlspecialchars($usuario["rol"]); ?>
                     </span>
+                    <a class="cuenta-link" href="perfil.php?id=<?php echo (int)$usuario["id"]; ?>">
+                        Ver mi perfil público
+                    </a>
                 </div>
             </div>
 
@@ -174,6 +236,37 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
                 </div>
 
             </div>
+
+            <div class="profile-divider"></div>
+
+            <h2 class="profile-subtitle">Descripción pública</h2>
+
+            <form class="avatar-form" method="POST" action="cuenta.php">
+
+                <textarea
+                class="cuenta-bio"
+                id="bio"
+                name="bio"
+                rows="4"
+                maxlength="300"
+                placeholder="Contá de vos, qué hacés en el hub, qué mod vas a subir..."
+                ><?php echo htmlspecialchars($bio_texto); ?></textarea>
+
+                <small class="avatar-hint">
+                    Hasta 300 caracteres. Se muestra en tu perfil público.
+                </small>
+
+                <?php if ($bio_guardada): ?>
+                    <small class="cuenta-ok">Descripción guardada.</small>
+                <?php endif; ?>
+
+                <?php foreach ($errores as $error): ?>
+                    <small class="cuenta-error"><?php echo htmlspecialchars($error); ?></small>
+                <?php endforeach; ?>
+
+                <button type="submit" class="btn">Guardar descripción</button>
+
+            </form>
 
             <div class="profile-divider"></div>
 

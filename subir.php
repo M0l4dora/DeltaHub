@@ -157,8 +157,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <a href="workshop.php" id="shadow">Workshop</a>
         <a href="community.html" id="shadow">Comunidad</a>
         <div class="auth">
-            <a href="cuenta.php" id="shadow"><?php echo htmlspecialchars($_SESSION["nombre_usuario"]); ?></a>
-            <a href="logout.php" id="shadow">Logout</a>
+            <a href="perfil.php?id=<?php echo (int)$_SESSION["usuario_id"]; ?>" id="shadow"><?php echo htmlspecialchars($_SESSION["nombre_usuario"]); ?></a>
         </div>
     </header>
 
