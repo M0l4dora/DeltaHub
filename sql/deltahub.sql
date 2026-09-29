@@ -133,6 +133,7 @@ CREATE TABLE `usuarios` (
   `email` varchar(100) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
   `avatar_url` varchar(255) DEFAULT NULL,
+  `banner_url` varchar(255) DEFAULT NULL,
   `fecha_registro` datetime DEFAULT current_timestamp(),
   `rol` enum('usuario','moderador','admin') DEFAULT 'usuario',
   `bio` text DEFAULT NULL
@@ -142,10 +143,10 @@ CREATE TABLE `usuarios` (
 -- Volcado de datos para la tabla `usuarios`
 --
 
-INSERT INTO `usuarios` (`id`, `nombre_usuario`, `email`, `password_hash`, `avatar_url`, `fecha_registro`, `rol`, `bio`) VALUES
-(7, 'Nataliasigma', 'natytorres@gmail.com', '$2y$10$Zz788dc1Wnuip2.DkCIu9.WqLbkDE8oQK9vbpoZhwtf6QyBPOV5cW', NULL, '2026-09-02 01:57:10', 'usuario', NULL),
-(8, 'arseniatrola', 'arseniaimbecil@gmail.com', '$2y$10$/0pBlUqJHGTEENmcw3HBeO8.UoD8UG.Vs4ckrF.w3TqWAwWDEejTi', 'uploads/avatars/avatar_8_1788574972.jpg', '2026-09-04 23:11:20', 'usuario', NULL),
-(9, 'supersigmasanti', 'santinitot@gmail.com', '$2y$10$cUrsoZZVUepk892Noqayx.KQ.lWc.YOvZDnBvykkhiauqqmyvJOn.', 'uploads/avatars/avatar_9_1788673813.png', '2026-09-04 23:33:41', 'usuario', 'Hola pijes jejeje\r\nbs. as.\r\naguante boca!!');
+INSERT INTO `usuarios` (`id`, `nombre_usuario`, `email`, `password_hash`, `avatar_url`, `banner_url`, `fecha_registro`, `rol`, `bio`) VALUES
+(7, 'Nataliasigma', 'natytorres@gmail.com', '$2y$10$Zz788dc1Wnuip2.DkCIu9.WqLbkDE8oQK9vbpoZhwtf6QyBPOV5cW', NULL, NULL, '2026-09-02 01:57:10', 'usuario', NULL),
+(8, 'arseniatrola', 'arseniaimbecil@gmail.com', '$2y$10$/0pBlUqJHGTEENmcw3HBeO8.UoD8UG.Vs4ckrF.w3TqWAwWDEejTi', 'uploads/avatars/avatar_8_1788574972.jpg', NULL, '2026-09-04 23:11:20', 'usuario', NULL),
+(9, 'supersigmasanti', 'santinitot@gmail.com', '$2y$10$cUrsoZZVUepk892Noqayx.KQ.lWc.YOvZDnBvykkhiauqqmyvJOn.', 'uploads/avatars/avatar_9_1788673813.png', NULL, '2026-09-04 23:33:41', 'usuario', 'Hola pijes jejeje\r\nbs. as.\r\naguante boca!!');
 
 --
 -- Índices para tablas volcadas

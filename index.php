@@ -21,6 +21,17 @@ session_start();
         <img id="intro-gif" alt="Deltahub intro">
     </div>
 
+    <script>
+        // La intro solo se muestra la primera vez. Si ya se vio, quitar el overlay
+        // aquí (justo después del HTML, antes de que se pinte la página) para que
+        // no aparezca un parpadeo negro al recargar. La clave la marca script.js.
+        try {
+            if (localStorage.getItem('deltahub_intro_vista')) {
+                document.getElementById('intro-overlay').remove();
+            }
+        } catch (e) {}
+    </script>
+
     <header>
 
         <a href="index.php" class="header-logo" id="header-logo">

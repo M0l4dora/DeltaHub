@@ -2,8 +2,6 @@
 session_start();
 require_once "config/database.php";
 
-// Tu tabla `categorias` solo tiene id y nombre (sin slug ni icono),
-// así que los generamos acá para no tocar el esquema.
 function slugify($texto) {
     $texto = mb_strtolower($texto, 'UTF-8');
     $texto = str_replace(['á','é','í','ó','ú','ñ'], ['a','e','i','o','u','n'], $texto);
@@ -47,7 +45,6 @@ $categorias = $pdo->query("
     ORDER BY c.id
 ")->fetchAll();
 
-// --- Traemos todo el contenido para filtrarlo del lado del cliente (JS) ---
 $total_items = (int)$pdo->query("SELECT COUNT(*) FROM items")->fetchColumn();
 
 $stmt = $pdo->query("
@@ -169,7 +166,7 @@ $items = $stmt->fetchAll();
             <!-- ENCABEZADO DE SECCIÓN -->
             <div class="ws-head">
                 <h1 class="ws-head-title">Workshop</h1>
-                <p class="ws-head-sub">Todo lo que la comunidad sube al hub.</p>
+                <p class="ws-head-sub">Articulos creados por la comunidad de Deltarune.</p>
             </div>
 
             <!-- BARRA DE BÚSQUEDA -->

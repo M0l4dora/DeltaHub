@@ -35,6 +35,18 @@ function avatar_de($url) {
     return $por_defecto;
 }
 
+// El banner es la imagen de cabecera que sube el usuario desde cuenta.php. No
+// tiene imagen por defecto: si no hay ninguna, el div queda con el gris de
+// fondo que ya tenía. Mismo criterio que el avatar: si la ruta guardada ya no
+// está en el disco, se muestra el recuadro vacío en vez de una imagen rota.
+function banner_de($url) {
+    if (!empty($url) && is_file(__DIR__ . "/" . $url)) {
+        return $url;
+    }
+
+    return "";
+}
+
 // "8 sep 2026": en las tarjetas del perfil alcanza con día, mes y año.
 function fecha_corta($fecha) {
     if (empty($fecha)) return "";
@@ -89,6 +101,7 @@ if (isset($_GET["id"]) && is_string($_GET["id"])) {
 }
 
 $hay_bio = columna_existe($pdo, "usuarios", "bio");
+$hay_banner = columna_existe($pdo, "usuarios", "banner_url");
 
 $usuario = null;
 $publicaciones = [];
@@ -107,6 +120,10 @@ if ($id_publico !== null) {
 
     if ($hay_bio) {
         $columnas .= ", bio";
+    }
+
+    if ($hay_banner) {
+        $columnas .= ", banner_url";
     }
 
     $stmt = $pdo->prepare("
@@ -189,6 +206,11 @@ if (!$usuario) {
 }
 
 $avatar = $usuario ? avatar_de($usuario["avatar_url"]) : "";
+
+$banner = "";
+if ($usuario && $hay_banner && !empty($usuario["banner_url"])) {
+    $banner = banner_de($usuario["banner_url"]);
+}
 
 $bio = "";
 if ($usuario && $hay_bio && !empty($usuario["bio"])) {
@@ -294,7 +316,17 @@ $titulo = $usuario
             <!-- IDENTIDAD -->
             <section class="pf-sheet" aria-label="Perfil de <?php echo htmlspecialchars($usuario["nombre_usuario"]); ?>">
 
-                <div class="pf-banner" aria-hidden="true"></div>
+                <?php if ($banner !== ""): ?>
+                    <div class="pf-banner">
+                        <img
+                        class="pf-banner-img"
+                        src="<?php echo htmlspecialchars($banner); ?>"
+                        alt="Banner de <?php echo htmlspecialchars($usuario["nombre_usuario"]); ?>"
+                        >
+                    </div>
+                <?php else: ?>
+                    <div class="pf-banner" aria-hidden="true"></div>
+                <?php endif; ?>
 
                 <header class="pf-head">
 

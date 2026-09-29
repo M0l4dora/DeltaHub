@@ -5,6 +5,22 @@ session_start();
 require_once "config/database.php";
 
 
+// Volver a la cuenta con un aviso: es el mismo canal que usa cambiar_banner.php,
+// así que un avatar o un banner que no se puedan subir terminan en la misma
+// pantalla en vez de en una página en blanco.
+
+function volver_a_cuenta($aviso = "") {
+    $destino = "cuenta.php";
+
+    if ($aviso !== "") {
+        $destino .= "?aviso=" . rawurlencode($aviso);
+    }
+
+    header("Location: " . $destino);
+    exit;
+}
+
+
 // Comprobar sesión
 
 if (!isset($_SESSION["usuario_id"])) {
@@ -16,7 +32,7 @@ if (!isset($_SESSION["usuario_id"])) {
 // Comprobar que haya un archivo
 
 if (!isset($_FILES["avatar"]) || $_FILES["avatar"]["error"] !== UPLOAD_ERR_OK) {
-    die("No se pudo subir la imagen.");
+    volver_a_cuenta("sin_archivo");
 }
 
 
@@ -28,7 +44,7 @@ $archivo = $_FILES["avatar"];
 $maximo = 2 * 1024 * 1024;
 
 if ($archivo["size"] > $maximo) {
-    die("La imagen no puede superar los 2 MB.");
+    volver_a_cuenta("tamano");
 }
 
 
@@ -37,7 +53,7 @@ if ($archivo["size"] > $maximo) {
 $info = getimagesize($archivo["tmp_name"]);
 
 if ($info === false) {
-    die("El archivo seleccionado no es una imagen válida.");
+    volver_a_cuenta("no_imagen");
 }
 
 
@@ -53,7 +69,7 @@ $formatos_permitidos = [
 
 
 if (!isset($formatos_permitidos[$mime])) {
-    die("Formato de imagen no permitido.");
+    volver_a_cuenta("formato");
 }
 
 
@@ -71,17 +87,17 @@ $carpeta = __DIR__ . "/uploads/avatars/";
 $ruta_fisica = $carpeta . $nombre_archivo;
 
 
-// Comprobar que exista la carpeta
+// La carpeta puede no existir todavía en una instalación nueva
 
 if (!is_dir($carpeta)) {
-    die("La carpeta de avatares no existe.");
+    mkdir($carpeta, 0755, true);
 }
 
 
 // Mover archivo
 
 if (!move_uploaded_file($archivo["tmp_name"], $ruta_fisica)) {
-    die("No se pudo guardar la imagen.");
+    volver_a_cuenta("guardado");
 }
 
 
@@ -106,7 +122,6 @@ $stmt->execute([
 
 // Volver a la cuenta
 
-header("Location: cuenta.php");
-exit;
+volver_a_cuenta("avatar_ok");
 
 ?>

@@ -52,17 +52,16 @@ body::before{
     transform: scale(1.05); /* Evita que se vean bordes blancos por el blur */
 }
 
- .workshop::before{
+  .workshop::before{
     content: "";
     position: fixed;
     inset: 0;
     z-index: -1;
-    background-image: url("imagenes/fondo2.gif");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
-    filter: blur(20px) brightness(0.35); /* Menos brillo para que el texto resalte más */
-    transform: scale(1.05); /* Evita que se vean bordes blancos por el blur */
+    background-image: url("imagenes/workshop_bg.png");
+    background-repeat: repeat; /* Patrón en mosaico a tamaño natural */
+    background-position: top left;
+    background-size: auto;
+    filter: brightness(0.55) blur(1px); /* Sin blur: el blur de 20px vaporizaba las líneas */
 }
 
 header{
@@ -524,12 +523,6 @@ a{
 
 /* ===== WORKSHOP ===== */
 
-/* Paleta y escala tipográfica de la sección.
-   Dos variables de color hacen casi todo el trabajo: superficie oscura y
-   violeta de interacción. El cyan queda reservado para un par de detalles.
-   Viven en body.workshop para que la lista y el detalle compartan sistema
-   sin repetir valores: ambas páginas usan esa clase, y el perfil público
-   (body.perfil) se suma al mismo sistema porque reutiliza las tarjetas. */
 body.workshop,
 body.perfil{
     --ws-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -552,35 +545,126 @@ body.perfil{
     font-family: var(--ws-sans);
 }
 
+/* Sobre la grilla del fondo las superficies van casi opacas: así la
+   cuadrícula se ve en los huecos pero no se transparenta dentro de las
+   tarjetas, la búsqueda ni el detalle. El perfil no se toca porque usa
+   el gif difuminado, donde la translucidez sí funciona. */
+body.workshop{
+    --ws-surface: rgba(11, 9, 34, 0.93);
+    --ws-surface-hi: rgba(22, 19, 58, 0.96);
+    /* Paleta synthwave sobre la grilla magenta: acento y líneas rosas en
+       vez de lavanda. Como el perfil comparte el bloque de variables de
+       arriba, el override vive acá para no contaminarlo. */
+    --ws-accent: #ff5fd2;
+    --ws-accent-soft: rgba(255, 95, 210, 0.14);
+    --ws-line: rgba(255, 95, 210, 0.16);
+    --ws-line-hi: rgba(255, 95, 210, 0.32);
+}
+
+/* ===== WORKSHOP sobre grilla magenta =====
+   Header, footer, botones y restos cableados, todo scopeado a
+   body.workshop: el resto del sitio conserva el azul. */
+body.workshop header{
+    background-color: #150a1f;
+    border-bottom: 1px solid rgba(255, 95, 210, 0.3);
+}
+
+body.workshop footer{
+    background-color: #150a1f;
+    border-top: 1px solid rgba(255, 95, 210, 0.3);
+}
+
+/* Botones principales: del azul al magenta sólido. */
+body.workshop .ws-upload-btn,
+body.workshop .btn-submit,
+body.workshop .btn-download,
+body.workshop .item-back-link{
+    background-color: #a5128a;
+    border-color: rgba(255, 95, 210, 0.4);
+}
+
+body.workshop .ws-upload-btn:hover,
+body.workshop .btn-submit:hover,
+body.workshop .btn-download:hover,
+body.workshop .item-back-link:hover{
+    background-color: #c81aa6;
+    border-color: rgba(255, 95, 210, 0.6);
+}
+
+/* Restos de lavanda cableados que no usan la variable. */
+body.workshop .ws-category:hover{
+    background-color: rgba(255, 95, 210, 0.08);
+}
+
+body.workshop .ws-tag.active{
+    border-color: rgba(255, 95, 210, 0.45);
+}
+
+body.workshop .ws-search-input-wrap:focus-within{
+    border-color: rgba(255, 95, 210, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 95, 210, 0.08);
+}
+
+body.workshop .ws-search-input-wrap:focus-within .ws-search-icon{
+    border-color: rgba(255, 95, 210, 0.85);
+}
+
+body.workshop .ws-search-input-wrap:focus-within .ws-search-icon::after{
+    background-color: rgba(255, 95, 210, 0.85);
+}
+
+body.workshop .ws-view-btn:hover{
+    background-color: rgba(255, 95, 210, 0.12);
+}
+
+body.workshop .ws-item-cat,
+body.workshop .item-cat{
+    color: rgba(255, 122, 216, 0.95);
+}
+
+body.workshop .item-form textarea:focus,
+body.workshop .item-form select:focus{
+    border-color: rgba(255, 95, 210, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 95, 210, 0.08);
+}
+
 .workshop-layout{
     display: flex;
-    gap: 34px;
+    gap: 40px;
     align-items: flex-start;
     width: 100%;
-    max-width: 1500px;
-    margin: 34px auto 64px 0;
-    /* Izq. casi pegada al borde, der. con aire para que no toque el borde */
-    padding: 0 28px 0 22px;
+    max-width: 1760px;
+    margin: 34px auto 64px auto;
+    padding: 0 32px;
     min-height: calc(100vh - 120px);
     color: var(--ws-ink);
 }
 
 /* --- Sidebar ---
    Sin caja propia: los tres grupos se apoyan en el fondo y se separan con
-   una línea finita. Sólo el grupo activo se marca. */
+   una línea finita. Sólo el grupo activo se marca. Al ser más ancha y con
+   filas más altas, acompaña mejor a una columna de contenido más grande y
+   deja menos vacío por debajo. */
 
 .ws-sidebar{
-    flex: 0 0 226px;
+    flex: 0 0 260px;
     display: flex;
     flex-direction: column;
     position: sticky;
     top: 86px;
     align-self: flex-start;
+    /* Panel sólido: sobre la grilla necesita fondo propio en vez de
+       apoyarse en el fondo como antes. */
+    background-color: #100818;
+    border: 1px solid var(--ws-line);
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    padding: 20px 14px;
 }
 
 .ws-sidebar-section{
-    padding: 0 0 20px 0;
-    margin-bottom: 20px;
+    padding: 0 0 24px 0;
+    margin-bottom: 24px;
     border-bottom: 1px solid var(--ws-line);
 }
 
@@ -592,12 +676,12 @@ body.perfil{
 
 .ws-sidebar-title{
     font-family: var(--ws-sans);
-    font-size: 10.5px;
+    font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--ws-ink-low);
-    margin-bottom: 10px;
+    color: #a89fd0;
+    margin-bottom: 12px;
     padding-left: 2px;
 }
 
@@ -614,14 +698,14 @@ body.perfil{
 .ws-category{
     display: flex;
     align-items: center;
-    gap: 9px;
-    padding: 6px 8px 6px 7px;
-    margin-left: -7px;
+    gap: 10px;
+    padding: 8px 10px 8px 14px;
+    margin-left: -14px;
     border-left: 2px solid transparent;
     border-radius: 0 3px 3px 0;
     font-family: var(--ws-sans);
-    font-size: 14px;
-    color: var(--ws-ink-mid);
+    font-size: 15px;
+    color: #eceafa;
     transition: color 130ms ease, background-color 130ms ease, border-color 130ms ease;
     cursor: url("cursores/pointer_kris.gif"), auto;
 }
@@ -639,11 +723,11 @@ body.perfil{
 
 .ws-cat-icon{
     flex: 0 0 auto;
-    width: 17px;
-    font-size: 13px;
+    width: 18px;
+    font-size: 14px;
     line-height: 1;
     text-align: center;
-    color: var(--ws-ink-low);
+    color: #8f89ad;
     transition: color 130ms ease;
 }
 
@@ -662,13 +746,13 @@ body.perfil{
 
 .ws-cat-total{
     flex: 0 0 auto;
-    font-size: 11.5px;
+    font-size: 12px;
     font-variant-numeric: tabular-nums;
-    color: rgba(236, 234, 250, 0.28);
+    color: #7d759e;
 }
 
 .ws-category.active .ws-cat-total{
-    color: rgba(236, 234, 250, 0.6);
+    color: #d7d1f2;
 }
 
 /* Ordenar por: sin iconos ni cajas, se distinguen del grupo de arriba por
@@ -683,10 +767,10 @@ body.perfil{
 
 .ws-sort{
     position: relative;
-    padding: 5px 8px 5px 18px;
+    padding: 6px 8px 6px 20px;
     font-family: var(--ws-sans);
-    font-size: 13px;
-    color: var(--ws-ink-low);
+    font-size: 14px;
+    color: #c9c3e3;
     transition: color 130ms ease;
     cursor: url("cursores/pointer_kris.gif"), auto;
 }
@@ -718,18 +802,18 @@ body.perfil{
 .ws-filter-tags{
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
     padding-left: 2px;
 }
 
 .ws-tag{
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 3px;
     border: 1px solid var(--ws-line);
     background-color: transparent;
-    color: var(--ws-ink-low);
+    color: #c9c3e3;
     font-family: var(--ws-sans);
-    font-size: 11.5px;
+    font-size: 12.5px;
     transition: color 130ms ease, border-color 130ms ease, background-color 130ms ease;
     cursor: url("cursores/pointer_kris.gif"), auto;
 }
@@ -751,7 +835,7 @@ body.perfil{
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 22px;
     min-width: 0;
 }
 
@@ -766,7 +850,7 @@ body.perfil{
 
 .ws-head-title{
     font-family: var(--ws-pixel);
-    font-size: 30px;
+    font-size: 34px;
     font-weight: normal;
     line-height: 1.15;
     color: #fff;
@@ -775,8 +859,8 @@ body.perfil{
 
 .ws-head-sub{
     font-family: var(--ws-sans);
-    font-size: 13.5px;
-    color: var(--ws-ink-low);
+    font-size: 14px;
+    color: var(--ws-ink);
 }
 
 /* Barra de búsqueda */
@@ -840,12 +924,12 @@ body.perfil{
 .ws-searchbar input{
     flex: 1;
     min-width: 0;
-    padding: 12px 0;
+    padding: 13px 0;
     background: transparent;
     border: none;
     color: var(--ws-ink);
     font-family: var(--ws-sans);
-    font-size: 14.5px;
+    font-size: 15px;
     outline: none;
 }
 
@@ -857,13 +941,13 @@ body.perfil{
    Sin brillo al-around, sólo un desplazamiento de 1px al pasar por encima. */
 
 .ws-upload-btn{
-    padding: 0 20px;
+    padding: 0 24px;
     background-color: rgb(66, 60, 168);
     border: 1px solid rgba(163, 158, 235, 0.28);
     border-radius: 4px;
     color: #f2f1ff;
     font-family: var(--ws-pixel);
-    font-size: 15px;
+    font-size: 16px;
     transition: background-color 130ms ease, border-color 130ms ease, transform 130ms ease;
     cursor: url("cursores/pointer_kris.gif"), auto;
     white-space: nowrap;
@@ -892,7 +976,7 @@ body.perfil{
 
 .ws-results-count{
     font-family: var(--ws-sans);
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--ws-ink-low);
     font-variant-numeric: tabular-nums;
 }
@@ -917,14 +1001,14 @@ body.perfil{
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 26px;
+    width: 32px;
+    height: 28px;
     padding: 0;
     background: none;
     border: 0;
     border-radius: 2px;
     color: var(--ws-ink-low);
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1;
     transition: color 120ms ease, background-color 120ms ease;
     cursor: url("cursores/pointer_kris.gif"), auto;
@@ -944,8 +1028,8 @@ body.perfil{
 
 .ws-grid{
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(252px, 1fr));
-    gap: 22px 18px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 26px 22px;
 }
 
 /* Tarjeta: una sola caja, borde fino y sin brillo en reposo. La sombra es
@@ -977,7 +1061,7 @@ body.perfil{
 .ws-item-thumb{
     position: relative;
     aspect-ratio: 16 / 10;
-    background-color: rgba(6, 5, 22, 0.75);
+    background-color: rgba(6, 5, 22, 0.94);
     border-bottom: 1px solid var(--ws-line);
     display: flex;
     align-items: center;
@@ -1055,7 +1139,7 @@ body.perfil{
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 11px 13px 12px;
+    padding: 13px 15px 14px;
 }
 
 .ws-item-kicker{
@@ -1063,9 +1147,9 @@ body.perfil{
     align-items: baseline;
     justify-content: space-between;
     gap: 10px;
-    margin-bottom: 6px;
+    margin-bottom: 7px;
     font-family: var(--ws-sans);
-    font-size: 11px;
+    font-size: 11.5px;
     line-height: 1.4;
 }
 
@@ -1099,7 +1183,7 @@ body.perfil{
 
 .ws-item-title{
     font-family: var(--ws-pixel);
-    font-size: 15px;
+    font-size: 16px;
     font-weight: normal;
     line-height: 1.4;
     color: #fff;
@@ -1129,17 +1213,17 @@ body.perfil{
 .ws-item-by{
     display: flex;
     align-items: center;
-    gap: 7px;
-    margin-top: 9px;
+    gap: 8px;
+    margin-top: 10px;
     font-family: var(--ws-sans);
-    font-size: 12.5px;
+    font-size: 13px;
     min-width: 0;
 }
 
 .ws-item-avatar{
     flex: 0 0 auto;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     object-fit: cover;
     background-color: rgba(255, 255, 255, 0.07);
@@ -1185,10 +1269,10 @@ body.perfil{
     justify-content: space-between;
     gap: 10px;
     margin-top: auto;
-    padding-top: 9px;
+    padding-top: 10px;
     border-top: 1px solid rgba(150, 146, 220, 0.1);
     font-family: var(--ws-sans);
-    font-size: 11.5px;
+    font-size: 12px;
     color: var(--ws-ink-low);
     font-variant-numeric: tabular-nums;
 }
@@ -1375,6 +1459,146 @@ body.perfil{
     border-radius: 50%;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
+}
+
+/* ===== Avatar y banner editables =====
+
+   Los dos <input type="file"> quedan escondidos: el avatar se cambia con un
+   clic en la foto y el banner con su botón, y en los dos casos lo que se ve
+   es un <label for> del input. Se esconden pero no se borran (siguen siendo lo
+   que el teclado y el lector de pantalla necesitan).
+
+   Elegir el archivo no sube nada: eso lo manda el <button type="submit"> de
+   cada formulario, que es el único paso que falta después de elegir la
+   imagen. */
+
+.avatar-pick{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.avatar-pick-input{
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.avatar-pick-label{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: url("cursores/pointer_kris.gif"), auto;
+}
+
+/* El clic en la foto tiene que verse al pasar por arriba, si no parece que sea
+   un control y no una imagen más de la tarjeta. El :focus-within es lo mismo
+   pero para cuando el foco llega por el teclado. */
+.avatar-pick-label:hover .profile-avatar-wrap,
+.avatar-pick-label:focus-within .profile-avatar-wrap{
+    border-color: #7f7bff;
+    box-shadow: 0 0 22px rgba(127, 123, 255, 0.6);
+    transform: scale(1.04);
+}
+
+.avatar-pick-label:focus-visible{
+    outline: 2px solid #7f7bff;
+    outline-offset: 6px;
+    border-radius: 8px;
+}
+
+.avatar-pick-hint{
+    font-family: 'Delta2';
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.65);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 120ms ease;
+}
+
+.avatar-pick-label:hover .avatar-pick-hint{
+    color: #fff;
+}
+
+.avatar-picked{
+    font-family: 'Delta2';
+    font-size: 12px;
+    color: #b3afff;
+    overflow-wrap: break-word;
+}
+
+.avatar-picked:empty{
+    display: none;
+}
+
+.avatar-pick-btn,
+.banner-btn-fallback{
+    margin-top: 0;
+    font-size: 15px;
+}
+
+/* El formulario del banner es una columna como .avatar-form, pero no comparte
+   la clase a propósito: .avatar-form input[type="file"] le pondría borde y fondo
+   al input escondido. */
+.banner-form{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* Vista previa del banner: el mismo rectángulo que se ve arriba del perfil, con
+   la proporción recortada igual (object-fit) para no mentir sobre lo que se
+   va a ver. */
+.banner-preview{
+    width: 100%;
+    height: 132px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    background-color: #3b377e;
+    border: 3px solid rgb(52, 45, 181);
+    border-radius: 10px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+.banner-preview.is-empty{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(10, 8, 50, 0.6);
+    border-style: dashed;
+}
+
+.banner-preview-empty{
+    font-family: 'Delta2';
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.banner-preview-img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* El botón del banner es un <label>, así que hereda el alto y el borde de .btn
+   pero sin el margen que llevan los inputs de arriba. */
+.banner-btn{
+    margin-top: 0;
+    cursor: url("cursores/pointer_kris.gif"), auto;
+}
+
+.banner-btn:focus-visible{
+    outline: 2px solid #7f7bff;
+    outline-offset: 2px;
 }
 
 .profile-heading{
@@ -1654,7 +1878,7 @@ body.perfil{
 
 .item-cover{
     aspect-ratio: 16 / 7;
-    background-color: rgba(6, 5, 22, 0.75);
+    background-color: rgba(6, 5, 22, 0.94);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2167,13 +2391,22 @@ body.perfil{
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
-/* Banner por defecto: gris sólido a doble altura, sin decoración. */
+/* Banner por defecto: gris sólido a doble altura, sin decoración. Si el
+   usuario subió uno desde cuenta.php, la imagen entra por dentro y el recorte
+   es el mismo en las dos pantallas. */
 .pf-banner{
     position: relative;
     height: 296px;
     overflow: hidden;
     background-color: #75757e;
     border-bottom: 1px solid var(--ws-line);
+}
+
+.pf-banner-img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .pf-head{
@@ -2477,8 +2710,8 @@ body.perfil{
 
 .pf-grid{
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(252px, 1fr));
-    gap: 22px 18px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px 20px;
 }
 
 /* 404 con alma: ★ + código pequeño + título, y dos salidas. */
@@ -2523,11 +2756,11 @@ body.perfil{
 
 @media (max-width: 1100px){
     .workshop-layout{
-        gap: 26px;
+        gap: 30px;
     }
 
     .ws-grid{
-        grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     }
 }
 
@@ -2535,8 +2768,8 @@ body.perfil{
     .workshop-layout{
         flex-direction: column;
         align-items: stretch;
-        margin: 26px auto 48px 0;
-        padding: 0 20px 0 18px;
+        margin: 26px auto 48px auto;
+        padding: 0 20px;
         gap: 24px;
     }
 
@@ -2564,17 +2797,17 @@ body.perfil{
     }
 
     .ws-grid{
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     }
 
     .ws-grid.list-view .ws-item-thumb{
-        flex: 0 0 168px;
+        flex: 0 0 188px;
     }
 }
 
 @media (max-width: 620px){
     .ws-head-title{
-        font-size: 25px;
+        font-size: 28px;
     }
 
     .ws-searchbar{
@@ -2763,7 +2996,7 @@ body.perfil{
     }
 
     .pf-grid{
-        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         gap: 14px;
     }
 }

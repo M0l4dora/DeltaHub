@@ -327,16 +327,85 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+// ===== Cuenta: elegir el avatar o el banner y subirlos con un botón =====
+
+// En cuenta.php el <input type="file"> está escondido y es el <label> el que
+// abre el explorador: la foto del avatar y el botón del banner. Elegir el
+// archivo NO sube nada por sí solo, hay que apretar el botón del formulario:
+// acá sólo se avisa qué archivo quedó elegido.
+
+document.addEventListener('DOMContentLoaded', () => {
+    const avatar = document.getElementById('avatar');
+    const banner = document.getElementById('banner');
+    const bannerBtn = document.querySelector('.banner-btn');
+    if (!avatar && !banner) return; // no estamos en la cuenta
+
+    function avisarArchivo(input) {
+        if (!input) return;
+
+        const aviso = input.form.querySelector('[data-archivo-elegido]');
+
+        input.addEventListener('change', () => {
+            if (!aviso) return;
+
+            // Si el usuario cancela el explorador no hay nada que mandar.
+            aviso.textContent = (input.files && input.files.length > 0)
+                ? 'Elegido: ' + input.files[0].name
+                : '';
+        });
+    }
+
+    avisarArchivo(avatar);
+    avisarArchivo(banner);
+
+    // El <label> abre el explorador con el mouse, pero no con el teclado: se le
+    // agrega la respuesta a Enter y Espacio de un botón de verdad.
+    if (banner && bannerBtn) {
+        bannerBtn.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+
+            e.preventDefault();
+            banner.click();
+        });
+    }
+});
+
+
 // ===== Intro: pantalla negra hasta que el gif llega a "Hub" =====
+
+// La intro solo se reproduce la primera vez que se abre la página.
+// Para verla de nuevo hay que borrar la clave en la consola:
+// localStorage.removeItem('deltahub_intro_vista')
+const INTRO_KEY = 'deltahub_intro_vista';
+
+function introYaVista() {
+    try { return localStorage.getItem(INTRO_KEY) !== null; }
+    catch (e) { return false; }
+}
+
+function marcarIntroVista() {
+    try { localStorage.setItem(INTRO_KEY, '1'); }
+    catch (e) { /* sin storage la intro se repetirá, pero la página funciona */ }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const overlay = document.getElementById('intro-overlay');
     const img = document.getElementById('intro-gif');
     if (!overlay || !img) return;
 
+    // Ya se vio alguna vez: quitar el overlay sin transición ni parpadeo
+    if (introYaVista()) {
+        overlay.remove();
+        return;
+    }
+
     const GIF_SRC = 'imagenes/DeltaHubanim.gif';  // el gif del título
     const REVELAR_EN_MS = 3000;                    // tiempo hasta que aparece "Hub"
     const MAX_ESPERA_MS = 10000;                   // red de seguridad
+
+    // Se marca antes de empezar, así que ni cerrando la pestaña a media
+    // intro se vuelve a mostrar al volver a entrar.
+    marcarIntroVista();
 
     function revelar() {
         overlay.classList.add('hidden');

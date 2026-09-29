@@ -37,6 +37,7 @@ function columna_existe($pdo, $tabla, $columna) {
 }
 
 $hay_bio = columna_existe($pdo, "usuarios", "bio");
+$hay_banner = columna_existe($pdo, "usuarios", "banner_url");
 
 // Buscar los datos del usuario
 
@@ -44,6 +45,10 @@ $columnas = "id, nombre_usuario, email, fecha_registro, rol, avatar_url";
 
 if ($hay_bio) {
     $columnas .= ", bio";
+}
+
+if ($hay_banner) {
+    $columnas .= ", banner_url";
 }
 
 $sql = "SELECT $columnas
@@ -104,6 +109,44 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["bio"])) {
 
 if (empty($usuario["avatar_url"])) {
     $usuario["avatar_url"] = "uploads/avatars/default.jpg";
+}
+
+// Avisos de cambiar_pfp.php y cambiar_banner.php. Esos dos scripts no tienen
+// dónde mostrar un error (no devuelven HTML, sólo redirigen), así que dejan
+// la clave en la URL y acá se traduce una vez sola. Un `aviso` desconocido se
+// ignora en vez de romper la página.
+
+$avisos = [
+    "avatar_ok"   => ["ok",    "Avatar actualizado."],
+    "banner_ok"   => ["ok",    "Banner actualizado. Ya se ve en tu perfil público."],
+    "sin_archivo" => ["error", "No se recibió ninguna imagen. Probá de nuevo."],
+    "tamano"      => ["error", "La imagen pesa demasiado: el avatar admite 2 MB y el banner 4 MB."],
+    "no_imagen"   => ["error", "El archivo elegido no es una imagen válida."],
+    "formato"     => ["error", "Formato no permitido. Usá PNG, JPG o WebP."],
+    "guardado"    => ["error", "No se pudo guardar la imagen en el servidor."],
+    "columna"     => ["error", "Falta la columna banner_url en la base de datos (sql/migracion_banner_usuario.sql)."],
+];
+
+$aviso = "";
+
+if (isset($_GET["aviso"]) && is_string($_GET["aviso"])) {
+    $clave = trim($_GET["aviso"]);
+
+    if (isset($avisos[$clave])) {
+        $aviso = $clave;
+    }
+}
+
+// El banner es opcional: si la base todavía no tiene la columna, o el archivo
+// ya no está en el disco, se muestra el recuadro vacío como en el perfil.
+
+$banner = "";
+
+if ($hay_banner
+    && !empty($usuario["banner_url"])
+    && is_file(__DIR__ . "/" . $usuario["banner_url"])) {
+
+    $banner = $usuario["banner_url"];
 }
 
 // Formatear la fecha de registro en español
@@ -173,13 +216,37 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
         <section class="profile-card">
 
             <div class="profile-header">
-                <div class="profile-avatar-wrap">
-                    <img
-                    src="<?php echo htmlspecialchars($usuario["avatar_url"]); ?>"
-                    alt="Avatar de <?php echo htmlspecialchars($usuario["nombre_usuario"]); ?>"
-                    class="profile-avatar"
+
+                <!-- El avatar se cambia con un clic en la foto: el <label> abre
+                     el explorador de archivos, pero el archivo recién se sube
+                     cuando se aprieta el botón de abajo. -->
+                <form class="avatar-pick" action="cambiar_pfp.php" method="POST" enctype="multipart/form-data">
+
+                    <input
+                    type="file"
+                    id="avatar"
+                    name="avatar"
+                    accept="image/png,image/jpeg,image/webp"
+                    required
+                    class="avatar-pick-input"
                     >
-                </div>
+
+                    <label for="avatar" class="avatar-pick-label">
+                        <span class="profile-avatar-wrap">
+                            <img
+                            src="<?php echo htmlspecialchars($usuario["avatar_url"]); ?>"
+                            alt="Avatar de <?php echo htmlspecialchars($usuario["nombre_usuario"]); ?>"
+                            class="profile-avatar"
+                            >
+                        </span>
+                        <span class="avatar-pick-hint">Tocá la foto para elegir una imagen</span>
+                    </label>
+
+                    <small class="avatar-hint">PNG, JPG o WebP. Tamaño máximo: 2 MB.</small>
+                    <small class="avatar-picked" data-archivo-elegido></small>
+
+                    <button type="submit" class="btn avatar-pick-btn">Cambiar avatar</button>
+                </form>
 
                 <div class="profile-heading">
                     <h1 class="profile-name">
@@ -193,6 +260,90 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
                     </a>
                 </div>
             </div>
+
+            <div class="profile-divider"></div>
+
+            <?php if ($aviso !== ""): ?>
+                <p class="cuenta-<?php echo $avisos[$aviso][0]; ?>">
+                    <?php echo htmlspecialchars($avisos[$aviso][1]); ?>
+                </p>
+            <?php endif; ?>
+
+            <h2 class="profile-subtitle">Descripción pública</h2>
+
+            <form class="avatar-form" method="POST" action="cuenta.php">
+
+                <textarea
+                class="cuenta-bio"
+                id="bio"
+                name="bio"
+                rows="4"
+                maxlength="300"
+                placeholder="Contá de vos, qué hacés en el hub, qué mod vas a subir..."
+                ><?php echo htmlspecialchars($bio_texto); ?></textarea>
+
+                <small class="avatar-hint">
+                    Hasta 300 caracteres. Se muestra en tu perfil público.
+                </small>
+
+                <?php if ($bio_guardada): ?>
+                    <small class="cuenta-ok">Descripción guardada.</small>
+                <?php endif; ?>
+
+                <?php foreach ($errores as $error): ?>
+                    <small class="cuenta-error"><?php echo htmlspecialchars($error); ?></small>
+                <?php endforeach; ?>
+
+                <button type="submit" class="btn">Guardar descripción</button>
+
+            </form>
+
+            <div class="profile-divider"></div>
+
+            <h2 class="profile-subtitle">Banner del perfil</h2>
+
+            <div class="banner-preview<?php echo $banner === "" ? " is-empty" : ""; ?>">
+                <?php if ($banner !== ""): ?>
+                    <img
+                    src="<?php echo htmlspecialchars($banner); ?>"
+                    alt="Tu banner de perfil"
+                    class="banner-preview-img"
+                    >
+                <?php else: ?>
+                    <span class="banner-preview-empty">Todavía no tenés un banner</span>
+                <?php endif; ?>
+            </div>
+
+            <form class="banner-form" action="cambiar_banner.php" method="POST" enctype="multipart/form-data">
+
+                <input
+                type="file"
+                id="banner"
+                name="banner"
+                accept="image/png,image/jpeg,image/webp"
+                required
+                class="avatar-pick-input"
+                >
+
+                <label for="banner" class="btn banner-btn" role="button" tabindex="0">
+                    <?php echo $banner === "" ? "Agregar banner" : "Cambiar banner"; ?>
+                </label>
+
+                <small class="avatar-hint">
+                    PNG, JPG o WebP. Tamaño máximo: 4 MB. Se muestra arriba de tu perfil público.
+                </small>
+                <small class="avatar-picked" data-archivo-elegido></small>
+
+                <?php if (!$hay_banner): ?>
+                    <small class="cuenta-error">
+                        Falta la columna banner_url en la base de datos (sql/migracion_banner_usuario.sql).
+                    </small>
+                <?php endif; ?>
+
+                <button type="submit" class="btn banner-btn-fallback">
+                    <?php echo $banner === "" ? "Subir el banner" : "Cambiar el banner"; ?>
+                </button>
+            </form>
 
             <div class="profile-divider"></div>
 
@@ -237,53 +388,6 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
 
             </div>
 
-            <div class="profile-divider"></div>
-
-            <h2 class="profile-subtitle">Descripción pública</h2>
-
-            <form class="avatar-form" method="POST" action="cuenta.php">
-
-                <textarea
-                class="cuenta-bio"
-                id="bio"
-                name="bio"
-                rows="4"
-                maxlength="300"
-                placeholder="Contá de vos, qué hacés en el hub, qué mod vas a subir..."
-                ><?php echo htmlspecialchars($bio_texto); ?></textarea>
-
-                <small class="avatar-hint">
-                    Hasta 300 caracteres. Se muestra en tu perfil público.
-                </small>
-
-                <?php if ($bio_guardada): ?>
-                    <small class="cuenta-ok">Descripción guardada.</small>
-                <?php endif; ?>
-
-                <?php foreach ($errores as $error): ?>
-                    <small class="cuenta-error"><?php echo htmlspecialchars($error); ?></small>
-                <?php endforeach; ?>
-
-                <button type="submit" class="btn">Guardar descripción</button>
-
-            </form>
-
-            <div class="profile-divider"></div>
-
-            <h2 class="profile-subtitle">Cambiar avatar</h2>
-
-            <form class="avatar-form" action="cambiar_pfp.php" method="POST" enctype="multipart/form-data">
-                <input
-                type="file"
-                id="avatar"
-                name="avatar"
-                accept="image/png,image/jpeg,image/webp"
-                required
-                >
-                <small class="avatar-hint">PNG, JPG o WebP. Tamaño máximo: 2 MB.</small>
-                <button type="submit" class="btn">Cambiar avatar</button>
-            </form>
-
             <a href="logout.php" class="btn btn-danger">Cerrar sesión</a>
 
         </section>
@@ -293,6 +397,7 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
     <footer>
         <p>&copy; 2026 Deltahub. Todos los derechos reservados.</p>
     </footer>
+    <script src="script.js"></script>
 </body>
 
 </html>
