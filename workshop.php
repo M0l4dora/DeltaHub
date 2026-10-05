@@ -1,12 +1,7 @@
 <?php
 session_start();
 require_once "config/database.php";
-
-function slugify($texto) {
-    $texto = mb_strtolower($texto, 'UTF-8');
-    $texto = str_replace(['á','é','í','ó','ú','ñ'], ['a','e','i','o','u','n'], $texto);
-    return preg_replace('/[^a-z0-9]+/', '', $texto);
-}
+require_once "config/workshop.php";
 
 
 // Avatar del autor. Si la ruta guardada no existe (subida a mano, cambio de
@@ -61,6 +56,39 @@ $stmt = $pdo->query("
     ORDER BY items.fecha_publicacion DESC
 ");
 $items = $stmt->fetchAll();
+
+// Capítulos publicados: sólo los que tienen saves, con la cantidad de cada uno,
+// para que el filtro no ofrezca capítulos vacíos.
+$capitulos_filtro = [];
+$slug_categoria_filtro = '';
+
+foreach ($categorias as $cat) {
+    $slug_cat = slugify($cat['nombre']);
+    if (usa_capitulos($slug_cat)) $slug_categoria_filtro = $slug_cat;
+}
+
+if ($slug_categoria_filtro !== '' && items_tienen_capitulo($pdo)) {
+    $capitulos_items = capitulos_disponibles($pdo, $slug_categoria_filtro);
+    $totales = [];
+
+    foreach ($items as $item) {
+        if (slugify($item['categoria_nombre']) !== $slug_categoria_filtro) continue;
+        if (empty($item['capitulo'])) continue;
+
+        $cap = (int)$item['capitulo'];
+        $totales[$cap] = ($totales[$cap] ?? 0) + 1;
+    }
+
+    foreach ($capitulos_items as $cap) {
+        if (!empty($totales[$cap])) {
+            $capitulos_filtro[] = [
+                'numero' => $cap,
+                'etiqueta' => etiqueta_capitulo($cap),
+                'total' => $totales[$cap],
+            ];
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -145,17 +173,19 @@ $items = $stmt->fetchAll();
                 </ul>
             </div>
 
-            <div class="ws-sidebar-section">
+            <div class="ws-sidebar-section"
+                 id="ws-filtros-seccion"
+                 data-capitulo-categoria="<?php echo htmlspecialchars($slug_categoria_filtro ?? ''); ?>"
+                 <?php echo empty($capitulos_filtro) ? 'hidden' : ''; ?>>
                 <h3 class="ws-sidebar-title">Filtros</h3>
                 <div class="ws-filter-tags">
-                    <button class="ws-tag active">Todos</button>
-                    <button data-category="capitulo1" class="ws-tag">Ch.1</button>
-                    <button class="ws-tag">Ch.2</button>
-                    <button class="ws-tag">Ch.3</button>
-                    <button class="ws-tag">Ch.4</button>
-                    <button class="ws-tag">Ch.5</button>
-                    <button class="ws-tag">Lorem Ipsum</button>
-                    <button class="ws-tag">Lorem Ipsum</button>
+                    <button type="button" class="ws-tag active" data-capitulo="">Todos</button>
+                    <?php foreach ($capitulos_filtro as $cap): ?>
+                        <button type="button" class="ws-tag" data-capitulo="<?php echo $cap['numero']; ?>">
+                            <?php echo $cap['etiqueta']; ?>
+                            <span class="ws-tag-total"><?php echo $cap['total']; ?></span>
+                        </button>
+                    <?php endforeach; ?>
                 </div>
             </div>
         </aside>
@@ -202,6 +232,7 @@ $items = $stmt->fetchAll();
 
                 <?php foreach ($items as $item):
                     $slug_item = slugify($item['categoria_nombre']);
+                    $capitulo_item = !empty($item['capitulo']) ? (int)$item['capitulo'] : '';
                     $es_nuevo = (strtotime($item['fecha_publicacion']) >= strtotime('-7 days'));
                     $tiene_valoracion = ($item['valoracion'] !== null);
                     $valoracion_txt = $tiene_valoracion
@@ -212,6 +243,7 @@ $items = $stmt->fetchAll();
                     <div class="ws-item-link" data-href="item.php?id=<?php echo (int)$item['id']; ?>">
                         <article class="ws-item"
                                  data-category="<?php echo $slug_item; ?>"
+                                 data-capitulo="<?php echo $capitulo_item; ?>"
                                  data-fecha="<?php echo htmlspecialchars($item['fecha_publicacion']); ?>"
                                  data-descargas="<?php echo (int)$item['descargas']; ?>"
                                  data-valoracion="<?php echo $tiene_valoracion ? (float)$item['valoracion'] : ''; ?>"
@@ -235,6 +267,9 @@ $items = $stmt->fetchAll();
 
                                 <p class="ws-item-kicker">
                                     <span class="ws-item-cat"><?php echo htmlspecialchars($item['categoria_nombre']); ?></span>
+                                    <?php if ($capitulo_item !== ''): ?>
+                                        <span class="ws-item-capitulo"><?php echo etiqueta_capitulo($capitulo_item); ?></span>
+                                    <?php endif; ?>
                                     <span class="ws-item-when"><?php echo htmlspecialchars(fecha_relativa($item['fecha_publicacion'])); ?></span>
                                 </p>
 

@@ -213,10 +213,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const sortItems = Array.from(document.querySelectorAll('.ws-sort'));
     const tagButtons = Array.from(document.querySelectorAll('.ws-tag'));
     const viewButtons = Array.from(document.querySelectorAll('.ws-view-btn'));
+    const filtrosSeccion = document.getElementById('ws-filtros-seccion');
 
     const estado = {
         categoria: 'all',
-        etiqueta: 'all',
+        capitulo: '',
         busqueda: '',
         orden: 'popular'
     };
@@ -226,10 +227,48 @@ document.addEventListener('DOMContentLoaded', () => {
         return !q || (item.textContent || '').toLowerCase().includes(q);
     }
 
+    // Sin capítulo elegido el filtro no descarta nada
+    function capituloAplica(item) {
+        if (estado.capitulo === '') return true;
+        return item.dataset.capitulo === estado.capitulo;
+    }
+
     function esVisible(item) {
         const enCategoria = estado.categoria === 'all' || item.dataset.category === estado.categoria;
-        const enEtiqueta = estado.etiqueta === 'all' || item.dataset.category === estado.etiqueta;
-        return enCategoria && enEtiqueta && buscarTexto(item);
+        return enCategoria && capituloAplica(item) && buscarTexto(item);
+    }
+
+    // Al cambiar de categoría se suelta el capítulo: si el filtro queda puesto
+    // y la nueva categoría no tiene saves, la lista quedaría vacía sin que se
+    // entienda por qué.
+    function soltarCapituloSiNoAplica() {
+        if (estado.capitulo === '') return;
+
+        const categoriaAcepta = estado.categoria === 'all' || categoriaEsDeCapitulo(estado.categoria);
+        if (categoriaAcepta) return;
+
+        estado.capitulo = '';
+        tagButtons.forEach(t => t.classList.toggle('active', t.dataset.capitulo === ''));
+    }
+
+    // La categoría que usa capítulos la declara el propio bloque de filtros,
+    // así el script no necesita saber que se llama "Saves".
+    function categoriaEsDeCapitulo(slug) {
+        return !!filtrosSeccion && filtrosSeccion.dataset.capituloCategoria === slug;
+    }
+
+    function actualizarFiltros() {
+        if (!filtrosSeccion) return;
+
+        // Sin ningún capítulo publicado el bloque no tiene nada que filtrar, así
+        // que se queda oculto aunque se esté en "Todos".
+        const hayCapitulos = tagButtons.some(t => t.dataset.capitulo !== '');
+
+        // Y sólo tiene sentido verlo mientras no se esté en una categoría que no
+        // los usa.
+        const visible = hayCapitulos && (estado.categoria === 'all' || categoriaEsDeCapitulo(estado.categoria));
+
+        filtrosSeccion.hidden = !visible;
     }
 
     function fechaOrden(link) {
@@ -276,6 +315,8 @@ document.addEventListener('DOMContentLoaded', () => {
         el.addEventListener('click', () => {
             estado.categoria = el.dataset.category || 'all';
             categoryItems.forEach(c => c.classList.toggle('active', c === el));
+            soltarCapituloSiNoAplica();
+            actualizarFiltros();
             aplicarFiltros();
         });
     });
@@ -290,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tagButtons.forEach(el => {
         el.addEventListener('click', () => {
-            estado.etiqueta = el.dataset.category || 'all';
+            estado.capitulo = el.dataset.capitulo || '';
             tagButtons.forEach(t => t.classList.toggle('active', t === el));
             aplicarFiltros();
         });
@@ -310,6 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    actualizarFiltros();
     aplicarFiltros();
 
     // El contenedor de la tarjeta es un div y no un <a> porque la tarjeta
@@ -324,6 +366,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.location.href = card.dataset.href;
     });
+});
+
+
+// ===== Subir: el capítulo sólo aparece al elegir la categoría Saves =====
+
+// El capítulo no es un campo más del formulario: sólo tiene sentido en los
+// saves, así que se muestra cuando la categoría elegida es la que lo usa
+// (data-slug del <option>) y se esconde en cualquier otra.
+
+document.addEventListener('DOMContentLoaded', () => {
+    const selectCategoria = document.getElementById('subir-categoria');
+    const bloqueCapitulo = document.getElementById('subir-capitulo');
+    if (!selectCategoria || !bloqueCapitulo) return; // no estamos en subir.php
+
+    const selectCapitulo = bloqueCapitulo.querySelector('select[name="capitulo"]');
+
+    function categoriaElegida() {
+        return selectCategoria.options[selectCategoria.selectedIndex];
+    }
+
+    function actualizarCapitulo() {
+        const opcion = categoriaElegida();
+        const conCapitulo = !!opcion && opcion.dataset.cap === '1';
+
+        bloqueCapitulo.hidden = !conCapitulo;
+
+        // Escondido con hidden no alcanza: un select required escondido frenaría
+        // el envío en las categorías que no lo necesitan.
+        if (selectCapitulo) {
+            selectCapitulo.disabled = !conCapitulo;
+            if (!conCapitulo) selectCapitulo.value = '';
+        }
+    }
+
+    selectCategoria.addEventListener('change', actualizarCapitulo);
+    actualizarCapitulo(); // por si la página vuelve con la categoría ya elegida
 });
 
 

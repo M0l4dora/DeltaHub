@@ -102,6 +102,7 @@ CREATE TABLE `items` (
   `id` int(11) NOT NULL,
   `usuario_id` int(11) NOT NULL,
   `categoria_id` int(11) NOT NULL,
+  `capitulo` tinyint(3) unsigned DEFAULT NULL,
   `titulo` varchar(100) NOT NULL,
   `descripcion` text DEFAULT NULL,
   `imagen_portada` varchar(255) DEFAULT NULL,
@@ -114,12 +115,12 @@ CREATE TABLE `items` (
 -- Volcado de datos para la tabla `items`
 --
 
-INSERT INTO `items` (`id`, `usuario_id`, `categoria_id`, `titulo`, `descripcion`, `imagen_portada`, `fecha_publicacion`, `fecha_actualizacion`, `descargas`) VALUES
-(1, 9, 7, 'skibidi', 'hola soy el primer upload jeje', 'uploads/portadas/1_082081e43486700302fb1915f7f3bfaf.jpg', '2026-09-05 02:48:19', NULL, 2),
-(2, 9, 7, 'El mod del Phonk', 'Mod que reemplaza el roaring knight por osam phonky god', 'uploads/portadas/2_file_0000000044c8720eaf2b64f99361fe57.png', '2026-09-05 03:12:11', NULL, 0),
-(16, 9, 10, 'lorem ipsum', 'lorem ipsum', 'uploads/portadas/16_yo_con_mi_cuadro_de_valencia.png', '2026-09-29 02:00:48', NULL, 0),
-(17, 9, 12, 'eduardo lorem', 'eduardo lorem', 'uploads/portadas/17_bana.jpg', '2026-09-29 02:01:24', NULL, 0),
-(18, 9, 8, 'la mismisima pagina es basura', 'la mismisima pagina es basura', 'uploads/portadas/18_1780702325121-019e9a1f-ecbc-7e28-9ba7-c7ecaab2e020.png', '2026-09-29 02:05:11', NULL, 0);
+INSERT INTO `items` (`id`, `usuario_id`, `categoria_id`, `capitulo`, `titulo`, `descripcion`, `imagen_portada`, `fecha_publicacion`, `fecha_actualizacion`, `descargas`) VALUES
+(1, 9, 7, NULL, 'skibidi', 'hola soy el primer upload jeje', 'uploads/portadas/1_082081e43486700302fb1915f7f3bfaf.jpg', '2026-09-05 02:48:19', NULL, 2),
+(2, 9, 7, NULL, 'El mod del Phonk', 'Mod que reemplaza el roaring knight por osam phonky god', 'uploads/portadas/2_file_0000000044c8720eaf2b64f99361fe57.png', '2026-09-05 03:12:11', NULL, 0),
+(16, 9, 10, NULL, 'lorem ipsum', 'lorem ipsum', 'uploads/portadas/16_yo_con_mi_cuadro_de_valencia.png', '2026-09-29 02:00:48', NULL, 0),
+(17, 9, 12, NULL, 'eduardo lorem', 'eduardo lorem', 'uploads/portadas/17_bana.jpg', '2026-09-29 02:01:24', NULL, 0),
+(18, 9, 8, NULL, 'la mismisima pagina es basura', 'la mismisima pagina es basura', 'uploads/portadas/18_1780702325121-019e9a1f-ecbc-7e28-9ba7-c7ecaab2e020.png', '2026-09-29 02:05:11', NULL, 0);
 
 -- --------------------------------------------------------
 

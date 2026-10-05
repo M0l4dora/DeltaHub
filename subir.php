@@ -1,22 +1,25 @@
 <?php
 session_start();
 require_once "config/database.php";
+require_once "config/workshop.php";
 
 if (!isset($_SESSION["usuario_id"])) {
     header("Location: login.html");
     exit;
 }
 
-// Convierte "Música" -> "musica" para usarlo como data-category (tu tabla no tiene columna slug)
-function slugify($texto) {
-    $texto = mb_strtolower($texto, 'UTF-8');
-    $texto = str_replace(['á','é','í','ó','ú','ñ'], ['a','e','i','o','u','n'], $texto);
-    $texto = preg_replace('/[^a-z0-9]+/', '', $texto);
-    return $texto;
-}
-
 $errores = [];
 $categorias = $pdo->query("SELECT id, nombre FROM categorias ORDER BY nombre")->fetchAll();
+
+// El capítulo es sólo de los saves: se busca por el slug de cada categoría para
+// no dejar el id clavado en el código.
+$categorias_con_capitulo = [];
+foreach ($categorias as $cat) {
+    $slug = slugify($cat["nombre"]);
+    if (usa_capitulos($slug)) $categorias_con_capitulo[$cat["id"]] = $slug;
+}
+$capitulos = !empty($categorias_con_capitulo) ? capitulos_disponibles($pdo, "saves") : [];
+$hay_capitulos = !empty($capitulos);
 
 // --- Config de subida (ajustá acá si cambian los límites) ---
 $extensiones_archivo = ["zip"];
@@ -44,6 +47,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
     if (!$categoria_valida) {
         $errores[] = "Categoría no válida.";
+    }
+
+    // Capítulo: obligatorio sólo para las categorías que lo usan (los saves) y
+    // descartado en las demás, así un save no queda con un capítulo inventado.
+    $categoria_con_capitulo = $categorias_con_capitulo[$categoria_id] ?? null;
+    $capitulo = null;
+
+    if ($categoria_con_capitulo !== null && $hay_capitulos) {
+        $capitulo = (int)($_POST["capitulo"] ?? 0);
+
+        if ($capitulo <= 0) {
+            $errores[] = "Elegí el capítulo del save.";
+        } elseif (!in_array($capitulo, $capitulos, true)) {
+            $errores[] = "El capítulo elegido no existe.";
+        }
     }
 
     // Validar archivo principal (obligatorio)
@@ -83,17 +101,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $pdo->beginTransaction();
 
         try {
-            // 1. Insertar el item (sin portada todavía, no conocemos el item_id)
-            $stmt = $pdo->prepare("
-                INSERT INTO items (usuario_id, categoria_id, titulo, descripcion)
-                VALUES (:usuario_id, :categoria_id, :titulo, :descripcion)
-            ");
-            $stmt->execute([
+            // 1. Insertar el item (sin portada todavía, no conocemos el item_id).
+            // La columna del capítulo sólo se escribe si la base la tiene.
+            $columnas = ["usuario_id", "categoria_id", "titulo", "descripcion"];
+            $valores = [
                 ":usuario_id" => $_SESSION["usuario_id"],
                 ":categoria_id" => $categoria_id,
                 ":titulo" => $titulo,
                 ":descripcion" => $descripcion,
-            ]);
+            ];
+
+            if ($capitulo !== null && items_tienen_capitulo($pdo)) {
+                $columnas[] = "capitulo";
+                $valores[":capitulo"] = $capitulo;
+            }
+
+            $stmt = $pdo->prepare(
+                "INSERT INTO items (" . implode(", ", $columnas) . ")
+                 VALUES (" . implode(", ", array_keys($valores)) . ")"
+            );
+            $stmt->execute($valores);
 
             $item_id = $pdo->lastInsertId();
 
@@ -186,15 +213,40 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 ><?php echo htmlspecialchars($_POST['descripcion'] ?? ''); ?></textarea>
 
                 <label class="profile-label">Categoría</label>
-                <select name="categoria_id" required
+                <select name="categoria_id" id="subir-categoria" required
                         style="width:100%; padding:12px; background-color:rgba(10,8,50,0.9); border:2px solid rgb(52,45,181); border-radius:8px; color:rgba(255,255,255,0.85); font-family:'Delta2';">
                     <option value="">-- Elegí una categoría --</option>
-                    <?php foreach ($categorias as $cat): ?>
-                        <option value="<?php echo $cat['id']; ?>">
+                    <?php foreach ($categorias as $cat):
+                        // data-cap le dice al script qué categorías abren el capítulo.
+                        $con_capitulo = isset($categorias_con_capitulo[$cat['id']]);
+                    ?>
+                        <option value="<?php echo $cat['id']; ?>"
+                                <?php if ($con_capitulo): ?>data-cap="1"<?php endif; ?>
+                                <?php echo ($_POST['categoria_id'] ?? '') == $cat['id'] ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($cat['nombre']); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
+
+                <!-- Capítulo: sólo tiene sentido en los saves, así que el script lo
+                     muestra cuando la categoría elegida es "Saves" y lo esconde en
+                     cualquier otra. -->
+                <?php if ($hay_capitulos): ?>
+                    <div id="subir-capitulo" hidden>
+                        <label class="profile-label">Capítulo</label>
+                        <select name="capitulo"
+                                style="width:100%; padding:12px; background-color:rgba(10,8,50,0.9); border:2px solid rgb(52,45,181); border-radius:8px; color:rgba(255,255,255,0.85); font-family:'Delta2';">
+                            <option value="">-- Elegí un capítulo --</option>
+                            <?php foreach ($capitulos as $cap): ?>
+                                <option value="<?php echo $cap; ?>"
+                                        <?php echo ($_POST['capitulo'] ?? '') === (string)$cap ? 'selected' : ''; ?>>
+                                    <?php echo etiqueta_capitulo($cap); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p class="avatar-hint">Sólo para saves. Dice en qué capítulo del juego vas.</p>
+                    </div>
+                <?php endif; ?>
 
                 <label class="profile-label">Versión (opcional, ej: 1.0)</label>
                 <input type="text" name="version" maxlength="20"
@@ -214,5 +266,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <footer>
         <p>&copy; 2026 Deltahub. Todos los derechos reservados.</p>
     </footer>
+    <script src="script.js"></script>
 </body>
 </html>
