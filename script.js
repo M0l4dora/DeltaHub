@@ -405,12 +405,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// ===== Cuenta: elegir el avatar o el banner y subirlos con un botón =====
+// ===== Cuenta: elegir el avatar y subirlo con un botón =====
 
 // En cuenta.php el <input type="file"> está escondido y es el <label> el que
-// abre el explorador: la foto del avatar y el botón del banner. Elegir el
-// archivo NO sube nada por sí solo, hay que apretar el botón del formulario:
-// acá sólo se avisa qué archivo quedó elegido.
+// abre el explorador: la foto del avatar. Elegir el archivo NO sube nada por sí
+// solo, hay que apretar el botón del formulario: acá sólo se avisa qué archivo
+// quedó elegido. El banner tiene su propio bloque más abajo, porque antes de
+// subirlo se abre la ventana de recorte.
 
 document.addEventListener('DOMContentLoaded', () => {
     const avatar = document.getElementById('avatar');
@@ -434,7 +435,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     avisarArchivo(avatar);
-    avisarArchivo(banner);
 
     // El <label> abre el explorador con el mouse, pero no con el teclado: se le
     // agrega la respuesta a Enter y Espacio de un botón de verdad.
@@ -509,5 +509,613 @@ document.addEventListener('DOMContentLoaded', () => {
     // Por si algo se traba (red lenta, etc.), nunca dejar la página en negro
     setTimeout(fin, MAX_ESPERA_MS);
 });
+
+
+// ===== Banner: ventana emergente para centrar y acomodar la imagen =====
+
+// Al elegir el archivo se abre un modal con la imagen en grande detrás de un
+// marco fijo: lo que queda dentro del marco es exactamente lo que se sube. Se
+// arrastra con el mouse y se ajusta el zoom con la rueda o con el control.
+//
+// El recorte se arma con <canvas>, y un canvas no sabe escribir un GIF: el
+// resultado sería un fotograma fijo y se perdería justo lo que hizo útil
+// admitir GIFs. Por eso la casilla "Conservar animación" sube el archivo entero
+// y guarda el encuadre como dos porcentajes en usuarios.banner_posicion, que
+// después se aplican como `object-position` (ver config/banner.php en PHP). Para
+// los GIF viene marcada de entrada; para el resto, desmarcada, que es lo que se
+// espera de un recorte.
+
+(function ventanaRecorte() {
+
+    const overlay = document.querySelector('[data-recorte]');
+
+    if (!overlay) return; // no estamos en la cuenta, no hay nada que recortar
+
+    const input = document.getElementById('banner');
+    const lienzo = overlay.querySelector('[data-recorte-lienzo]');
+    const img = overlay.querySelector('[data-recorte-imagen]');
+    const marco = overlay.querySelector('[data-recorte-marco]');
+    const zoom = overlay.querySelector('[data-recorte-zoom]');
+    const conservar = overlay.querySelector('[data-recorte-conservar]');
+    const textoConservar = overlay.querySelector('[data-recorte-conservar-texto]');
+    const nota = overlay.querySelector('[data-recorte-nota]');
+    const error = overlay.querySelector('[data-recorte-error]');
+    const btnCancelar = overlay.querySelector('[data-recorte-cancelar]');
+    const btnAceptar = overlay.querySelector('[data-recorte-aceptar]');
+    const campoPosicion = input ? input.form.querySelector('[data-banner-posicion]') : null;
+    const avisoElegido = input ? input.form.querySelector('[data-archivo-elegido]') : null;
+
+    if (!input || !lienzo || !img || !marco) return;
+
+    // El mismo límite que pone cambiar_banner.php del lado del servidor. Sirve
+    // para avisar en la ventana en vez de mandar un archivo que el servidor va
+    // a rechazar después de todo el viaje.
+    const MAXIMO = 4 * 1024 * 1024;
+    const ZOOM_MINIMO = 1;
+    const ZOOM_MAXIMO = 4;
+
+    const archivo = {
+        original: null,   // el File que eligió el usuario
+        esGif: false,
+        url: '',          // object URL de la imagen en pantalla
+        naturalAncho: 0,
+        naturalAlto: 0,
+        escala: 1,       // escala para cubrir el marco con zoom 1
+        nivelZoom: 1,    // 1 a ZOOM_MAXIMO
+        marcoX: 0,       // del marco dentro del lienzo
+        marcoY: 0,
+        marcoAncho: 0,
+        marcoAlto: 0,
+        panX: 0,         // de la imagen respecto del marco (nunca positiva)
+        panY: 0,
+    };
+
+    let urlPrevia = '';   // object URL de la vista previa, para revocarla
+    let elementoAnterior = null; // qué tenía el foco antes de abrir
+
+    // --- Medidas -------------------------------------------------------
+
+    function medir() {
+        // Los rectángulos sólo sirven con la ventana abierta: si el modal está
+        // en `hidden` todo mide cero. Por eso se llama después de mostrarlo.
+        const delLienzo = lienzo.getBoundingClientRect();
+        const delMarco = marco.getBoundingClientRect();
+
+        archivo.marcoX = delMarco.left - delLienzo.left;
+        archivo.marcoY = delMarco.top - delLienzo.top;
+        archivo.marcoAncho = delMarco.width;
+        archivo.marcoAlto = delMarco.height;
+    }
+
+    // El tamaño con el que se dibuja la imagen: la escala justa para tapar el
+    // marco (como un object-fit: cover) multiplicada por el zoom.
+    function anchoActual() {
+        return archivo.naturalAncho * archivo.escala * archivo.nivelZoom;
+    }
+
+    function altoActual() {
+        return archivo.naturalAlto * archivo.escala * archivo.nivelZoom;
+    }
+
+    // La imagen nunca se puede dejar de cubrir el marco, así que el desplazamiento
+    // va entre -(lo que sobra) y 0.
+    function limitarPan() {
+        archivo.panX = Math.min(0, Math.max(archivo.marcoAncho - anchoActual(), archivo.panX));
+        archivo.panY = Math.min(0, Math.max(archivo.marcoAlto - altoActual(), archivo.panY));
+    }
+
+    function centrar() {
+        archivo.panX = (archivo.marcoAncho - anchoActual()) / 2;
+        archivo.panY = (archivo.marcoAlto - altoActual()) / 2;
+        limitarPan();
+    }
+
+    function pintar() {
+        const ancho = anchoActual();
+        const alto = altoActual();
+
+        limitarPan();
+
+        img.style.width = ancho + 'px';
+        img.style.height = alto + 'px';
+        img.style.left = (archivo.marcoX + archivo.panX) + 'px';
+        img.style.top = (archivo.marcoY + archivo.panY) + 'px';
+
+        zoom.value = String(Math.round(archivo.nivelZoom * 100));
+    }
+
+    // --- Posición ------------------------------------------------------
+
+    // Traduce el desplazamiento a los dos porcentajes que guarda
+    // usuarios.banner_posicion.
+    //
+    // La fórmula es la inversa de un `object-position: P%`, que alinea el punto
+    // P% de la imagen con el punto P% de la caja: 0% deja la imagen pegada a la
+    // izquierda, 100% a la derecha y 50% al centro. Como acá el desplazamiento
+    // va al revés (0 = pegado a la izquierda, negativo = corrido a la derecha),
+    // sale el signo cambiado.
+    function posicionEnPorcentaje() {
+        const ancho = anchoActual();
+        const alto = altoActual();
+
+        const x = ancho > archivo.marcoAncho
+            ? (-archivo.panX / (ancho - archivo.marcoAncho)) * 100
+            : 50;
+
+        const y = alto > archivo.marcoAlto
+            ? (-archivo.panY / (alto - archivo.marcoAlto)) * 100
+            : 50;
+
+        return x.toFixed(1) + '% ' + y.toFixed(1) + '%';
+    }
+
+    // --- Zoom ----------------------------------------------------------
+
+    function cambiarZoom(nuevo) {
+        const destino = Math.min(ZOOM_MAXIMO, Math.max(ZOOM_MINIMO, nuevo));
+
+        if (destino === archivo.nivelZoom) return;
+
+        // El zoom se ancla en lo que hay bajo el centro del marco: si no, cada
+        // paso de la rueda haría un salto y sería imposible acercarse a un
+        // detalle sin empezar de nuevo.
+        const centroX = (archivo.panX + archivo.marcoAncho / 2) / anchoActual();
+        const centroY = (archivo.panY + archivo.marcoAlto / 2) / altoActual();
+
+        archivo.nivelZoom = destino;
+
+        archivo.panX = centroX * anchoActual() - archivo.marcoAncho / 2;
+        archivo.panY = centroY * altoActual() - archivo.marcoAlto / 2;
+
+        pintar();
+    }
+
+    // --- Arrastrar -----------------------------------------------------
+
+    let arrastrando = false;
+    let inicioX = 0;
+    let inicioY = 0;
+    let panXInicial = 0;
+    let panYInicial = 0;
+
+    lienzo.addEventListener('pointerdown', (e) => {
+        // Botón izquierdo solamente: con el derecho se abriría el menú del
+        // navegador y no tiene sentido para arrastrar.
+        if (e.button !== 0) return;
+
+        arrastrando = true;
+        inicioX = e.clientX;
+        inicioY = e.clientY;
+        panXInicial = archivo.panX;
+        panYInicial = archivo.panY;
+
+        lienzo.classList.add('arrastrando');
+        lienzo.setPointerCapture(e.pointerId);
+        e.preventDefault();
+    });
+
+    lienzo.addEventListener('pointermove', (e) => {
+        if (!arrastrando) return;
+
+        archivo.panX = panXInicial + (e.clientX - inicioX);
+        archivo.panY = panYInicial + (e.clientY - inicioY);
+
+        pintar();
+    });
+
+    function soltar(e) {
+        if (!arrastrando) return;
+
+        arrastrando = false;
+        lienzo.classList.remove('arrastrando');
+
+        // El puntero puede haberse liberado fuera del lienzo (terminar el
+        // arrastre afuera, cambiar de pestaña).
+        if (e && e.pointerId !== undefined && lienzo.hasPointerCapture(e.pointerId)) {
+            lienzo.releasePointerCapture(e.pointerId);
+        }
+    }
+
+    lienzo.addEventListener('pointerup', soltar);
+    lienzo.addEventListener('pointercancel', soltar);
+
+    lienzo.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        cambiarZoom(archivo.nivelZoom - e.deltaY * 0.002);
+    }, { passive: false });
+
+    zoom.addEventListener('input', () => cambiarZoom(Number(zoom.value) / 100));
+
+    // Con teclado también se puede encuadrar: las flechas mueven y el + / -
+    // cambian el zoom. El input del zoom ya anda con las flechas solo.
+    overlay.addEventListener('keydown', (e) => {
+        const paso = e.shiftKey ? 20 : 4;
+
+        switch (e.key) {
+            case 'ArrowLeft':  archivo.panX += paso; break;
+            case 'ArrowRight': archivo.panX -= paso; break;
+            case 'ArrowUp':    archivo.panY += paso; break;
+            case 'ArrowDown':  archivo.panY -= paso; break;
+            case '+':
+            case '=':
+                cambiarZoom(archivo.nivelZoom + 0.1);
+                break;
+            case '-':
+            case '_':
+                cambiarZoom(archivo.nivelZoom - 0.1);
+                break;
+            default:
+                return;
+        }
+
+        e.preventDefault();
+        pintar();
+    });
+
+    // --- Mensajes ------------------------------------------------------
+
+    function mostrarError(mensaje) {
+        error.textContent = mensaje;
+        error.hidden = false;
+    }
+
+    function limpiarError() {
+        error.textContent = '';
+        error.hidden = true;
+    }
+
+    function actualizarNota() {
+        if (archivo.esGif) {
+            textoConservar.textContent = 'Conservar la animación del GIF';
+
+            nota.textContent = conservar.checked
+                ? 'Se sube el GIF entero. El encuadre se guarda y el perfil lo muestra sin perderse ningún fotograma.'
+                : 'Al recortar, el GIF se queda en un solo fotograma: la animación se pierde.';
+        } else {
+            textoConservar.textContent = 'Subir sin recortar';
+
+            nota.textContent = conservar.checked
+                ? 'Se sube la imagen entera, sin recortar. El encuadre elegido se guarda y el perfil muestra esa parte.'
+                : 'Se recorta al marco y se sube como imagen fija.';
+        }
+    }
+
+    conservar.addEventListener('change', actualizarNota);
+
+    // --- Abrir y cerrar -------------------------------------------------
+
+    function abrir(file) {
+        if (typeof DataTransfer === 'undefined') {
+            //Sin DataTransfer no hay forma de poner un archivo recortado en el
+            // input, así que se avisa en vez de fallar en silencio.
+            alert('Este navegador no permite preparar la imagen antes de subirla. Probá con Chrome, Firefox o Edge.');
+            return;
+        }
+
+        elementoAnterior = document.activeElement;
+
+        archivo.original = file;
+        // El tipo lo dice el navegador, pero algunos lo mandan vacío: el
+        // nombre del archivo es el plan B.
+        archivo.esGif = file.type === 'image/gif' || /\.gif$/i.test(file.name);
+        archivo.nivelZoom = ZOOM_MINIMO;
+
+        limpiarError();
+
+        conservar.checked = archivo.esGif;
+        zoom.value = String(ZOOM_MINIMO * 100);
+        actualizarNota();
+
+        // La vista previa del modal es la imagen elegida, sin recortar todavía.
+        img.removeAttribute('src');
+
+        const reader = new Image();
+
+        reader.onload = () => {
+            archivo.naturalAncho = reader.naturalWidth;
+            archivo.naturalAlto = reader.naturalHeight;
+
+            if (!reader.naturalWidth || !reader.naturalHeight) {
+                mostrarError('No se pudo leer la imagen.');
+                return;
+            }
+
+            // Con zoom 1 la imagen apenas tapa el marco, como un cover.
+            archivo.escala = Math.max(
+                archivo.marcoAncho / reader.naturalWidth,
+                archivo.marcoAlto / reader.naturalHeight
+            );
+
+            img.src = archivo.url;
+            centrar();
+            pintar();
+
+            btnAceptar.focus();
+        };
+
+        reader.onerror = () => mostrarError('Ese archivo no se pudo abrir como imagen.');
+
+        if (archivo.url) URL.revokeObjectURL(archivo.url);
+        archivo.url = URL.createObjectURL(file);
+        reader.src = archivo.url;
+
+        overlay.hidden = false;
+
+        // Recién con la ventana visible el marco tiene medidas reales.
+        medir();
+
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrar() {
+        overlay.hidden = true;
+        document.body.style.overflow = '';
+        soltar(null);
+
+        if (archivo.url) {
+            URL.revokeObjectURL(archivo.url);
+            archivo.url = '';
+        }
+
+        img.removeAttribute('src');
+        archivo.original = null;
+
+        if (elementoAnterior && elementoAnterior.focus) {
+            elementoAnterior.focus();
+        }
+    }
+
+    // --- Mandar el resultado -------------------------------------------
+
+    // El canvas no escribe GIF, así que un GIF recortado sale como PNG. Para el
+    // resto se mantiene el formato de origen.
+    function tipoDeSalida(tipo) {
+        if (tipo === 'image/jpeg' || tipo === 'image/pjpeg') return 'image/jpeg';
+        if (tipo === 'image/png') return 'image/png';
+        if (tipo === 'image/webp') return 'image/webp';
+        return 'image/png';
+    }
+
+    function blobDelCanvas(canvas, tipo, calidad) {
+        return new Promise((resolver) => {
+            if (typeof canvas.toBlob !== 'function') {
+                resolver(null);
+                return;
+            }
+
+            canvas.toBlob((blob) => resolver(blob), tipo, calidad);
+        });
+    }
+
+    function dibujarRecorte(canvas, factor) {
+        // El recorte se toma del tamaño natural de la imagen: el marco es
+        // siempre más chico que eso, así que sale con detalle de sobra.
+        const escalaX = archivo.naturalAncho / anchoActual();
+        const escalaY = archivo.naturalAlto / altoActual();
+
+        const origenX = -archivo.panX * escalaX;
+        const origenY = -archivo.panY * escalaY;
+        const anchoOrigen = archivo.marcoAncho * escalaX;
+        const altoOrigen = archivo.marcoAlto * escalaY;
+
+        // `factor` achica el resultado si el archivo recortado igual queda
+        // pesado: se vuelve a dibujar en un canvas más chico.
+        canvas.width = Math.max(1, Math.round(anchoOrigen * factor));
+        canvas.height = Math.max(1, Math.round(altoOrigen * factor));
+
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) return false;
+
+        ctx.drawImage(
+            img,
+            origenX, origenY, anchoOrigen, altoOrigen,
+            0, 0, canvas.width, canvas.height
+        );
+
+        return true;
+    }
+
+    async function recortar() {
+        const tipo = tipoDeSalida(archivo.original.type);
+        const canvas = document.createElement('canvas');
+
+        if (!dibujarRecorte(canvas, 1)) {
+            mostrarError('Tu navegador no pudo preparar el recorte.');
+            return null;
+        }
+
+        // Un PNG de una foto grande se pasa de 4 MB con facilidad, así que se
+        // prueba de a poco: primero bajando la calidad y, si sigue, achicando.
+        for (const calidad of [0.92, 0.8, 0.65]) {
+            const blob = await blobDelCanvas(canvas, tipo, calidad);
+
+            if (blob && blob.size <= MAXIMO) return blob;
+        }
+
+        for (const factor of [0.75, 0.5, 0.35]) {
+            if (!dibujarRecorte(canvas, factor)) break;
+
+            const blob = await blobDelCanvas(canvas, tipo, 0.8);
+
+            if (blob && blob.size <= MAXIMO) return blob;
+        }
+
+        mostrarError(
+            'El banner recortado sigue pesando más de 4 MB. Probá con una imagen más chica.'
+        );
+
+        return null;
+    }
+
+    function ponerEnElInput(file) {
+        const portapapeles = new DataTransfer();
+
+        portapapeles.items.add(file);
+        input.files = portapapeles.files;
+    }
+
+    function actualizarVistaPrevia(url, posicion, nombre) {
+        const caja = document.querySelector('[data-banner-preview]');
+
+        if (caja) {
+            caja.classList.remove('is-empty');
+
+            const vacio = caja.querySelector('.banner-preview-empty');
+            if (vacio) vacio.remove();
+
+            let previa = caja.querySelector('.banner-preview-img');
+
+            if (!previa) {
+                previa = document.createElement('img');
+                previa.className = 'banner-preview-img';
+                previa.alt = 'Tu banner de perfil';
+                caja.appendChild(previa);
+            }
+
+            previa.src = url;
+            previa.style.objectPosition = posicion;
+        }
+
+        if (urlPrevia) URL.revokeObjectURL(urlPrevia);
+        urlPrevia = url;
+
+        if (avisoElegido) {
+            avisoElegido.textContent = 'Listo para subir: ' + nombre;
+        }
+
+        if (campoPosicion) {
+            campoPosicion.value = posicion;
+        }
+    }
+
+    btnAceptar.addEventListener('click', async () => {
+        const elegido = archivo.original;
+
+        if (!elegido) {
+            cerrar();
+            return;
+        }
+
+        limpiarError();
+        btnAceptar.disabled = true;
+        btnCancelar.disabled = true;
+
+        const posicion = posicionEnPorcentaje();
+
+        if (conservar.checked) {
+            // Sin recortar: sube el archivo tal cual lo eligió el usuario y el
+            // encuadre viaja en la columna banner_posicion. El perfil lo aplica
+            // como object-position, así que el GIF sigue animándose.
+            if (elegido.size > MAXIMO) {
+                mostrarError('Ese archivo pesa más de 4 MB. Recortalo, o usá uno más liviano.');
+                btnAceptar.disabled = false;
+                btnCancelar.disabled = false;
+                return;
+            }
+
+            ponerEnElInput(elegido);
+            actualizarVistaPrevia(archivo.url, posicion, elegido.name);
+        } else {
+            const blob = await recortar();
+
+            if (!blob) {
+                btnAceptar.disabled = false;
+                btnCancelar.disabled = false;
+                return;
+            }
+
+            const extension = blob.type === 'image/jpeg' ? 'jpg'
+                : blob.type === 'image/webp' ? 'webp'
+                : 'png';
+
+            const archivoRecortado = new File(
+                [blob],
+                'banner.' + extension,
+                { type: blob.type, lastModified: Date.now() }
+            );
+
+            ponerEnElInput(archivoRecortado);
+
+            // El recorte ya trae el encuadre cocido, así que la posición se
+            // deja en el centro.
+            actualizarVistaPrevia(
+                URL.createObjectURL(blob),
+                '50% 50%',
+                elegido.name + ' (recortado)'
+            );
+        }
+
+        cerrar();
+
+        btnAceptar.disabled = false;
+        btnCancelar.disabled = false;
+    });
+
+    btnCancelar.addEventListener('click', cerrar);
+
+    // Cancelar con Escape o clicking afuera del recuadro blanco.
+    overlay.addEventListener('mousedown', (e) => {
+        if (e.target === overlay) cerrar();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (overlay.hidden) return;
+
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            cerrar();
+        }
+    });
+
+    // Al abrir se arrastra y al cambiar el tamaño de la ventana el marco cambia
+    // de medidas: hay que volver a medir y a encuadrar.
+    window.addEventListener('resize', () => {
+        if (overlay.hidden) return;
+
+        const zoomPrevio = archivo.nivelZoom;
+
+        medir();
+        cambiarZoom(zoomPrevio); // reencuadra y vuelve a medir
+        centrar();
+        pintar();
+    });
+
+    // --- Arrancar el flujo ---------------------------------------------
+
+    input.addEventListener('change', () => {
+        // El File se guarda antes de vaciar el input: `files` queda vacío
+        // recién después, aunque el objeto siga siendo válido.
+        const elegido = input.files && input.files[0];
+
+        // El input se vacía a propósito: el `required` del formulario tiene que
+        // seguir siendo cierto hasta que el modal confirme el recorte, así que
+        // no se puede mandar el archivo crudo si el usuario cancela.
+        input.value = '';
+
+        if (!elegido) return;
+
+        if (!/^image\//.test(elegido.type) && !/\.(png|jpe?g|webp|gif)$/i.test(elegido.name)) {
+            if (avisoElegido) {
+                avisoElegido.textContent = 'Ese archivo no es una imagen.';
+            }
+            return;
+        }
+
+        if (elegido.size > MAXIMO) {
+            if (avisoElegido) {
+                avisoElegido.textContent = 'La imagen pesa más de 4 MB.';
+            }
+            return;
+        }
+
+        if (avisoElegido) {
+            avisoElegido.textContent = 'Elegido: ' + elegido.name;
+        }
+
+        abrir(elegido);
+    });
+
+})();
 
 

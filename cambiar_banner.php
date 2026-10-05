@@ -3,6 +3,7 @@
 session_start();
 
 require_once "config/database.php";
+require_once "config/banner.php";
 
 
 // Comprobar sesión
@@ -95,7 +96,8 @@ $mime = $info["mime"];
 $formatos_permitidos = [
     "image/jpeg" => "jpg",
     "image/png"  => "png",
-    "image/webp" => "webp"
+    "image/webp" => "webp",
+    "image/gif" => "gif"
 ];
 
 
@@ -137,18 +139,45 @@ if (!move_uploaded_file($archivo["tmp_name"], $ruta_fisica)) {
 $banner_url = "uploads/banners/" . $nombre_archivo;
 
 
+// `usuarios.banner_posicion` viene de sql/migracion_banner_posicion.sql y
+// guarda el encuadre que el usuario eligió en la ventana emergente, con el
+// formato "X% Y%". Sólo se usa cuando el archivo NO se recorta (un GIF
+// animado, por ejemplo): ahí la imagen entra entera y esta columna decide qué
+// parte se ve en el recuadro, como un `object-position`. La validación vive en
+// config/banner.php porque la usan también cuenta.php y perfil.php.
+
+$posicion = isset($_POST["banner_posicion"])
+    ? banner_posicion_de($_POST["banner_posicion"])
+    : "";
+
+
+// La misma comprobación del esquema de arriba, reutilizada para armar el UPDATE:
+// si la migración de la posición todavía no se corrió, la columna no entra en la
+// consulta y el banner se guarda igual (se verá centrado).
+
+$hay_posicion = columna_existe($pdo, "usuarios", "banner_posicion");
+
+
 // Actualizar usuario
 
 $sql = "UPDATE usuarios
-        SET banner_url = :banner_url
+        SET banner_url = :banner_url";
+
+$datos = [
+    ":banner_url" => $banner_url,
+    ":id"         => $_SESSION["usuario_id"]
+];
+
+if ($hay_posicion) {
+    $sql .= ", banner_posicion = :banner_posicion";
+    $datos[":banner_posicion"] = $posicion;
+}
+
+$sql .= "
         WHERE id = :id";
 
 $stmt = $pdo->prepare($sql);
-
-$stmt->execute([
-    ":banner_url" => $banner_url,
-    ":id" => $_SESSION["usuario_id"]
-]);
+$stmt->execute($datos);
 
 
 // Volver a la cuenta

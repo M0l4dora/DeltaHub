@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once "config/database.php";
+require_once "config/banner.php";
 
 /* Perfil público.
    Muestra los datos que cualquiera de la comunidad puede ver de un usuario,
@@ -102,6 +103,7 @@ if (isset($_GET["id"]) && is_string($_GET["id"])) {
 
 $hay_bio = columna_existe($pdo, "usuarios", "bio");
 $hay_banner = columna_existe($pdo, "usuarios", "banner_url");
+$hay_banner_posicion = columna_existe($pdo, "usuarios", "banner_posicion");
 
 $usuario = null;
 $publicaciones = [];
@@ -124,6 +126,13 @@ if ($id_publico !== null) {
 
     if ($hay_banner) {
         $columnas .= ", banner_url";
+    }
+
+    // El encuadre guardado sólo se lee si la base tiene la columna. Si no la
+    // tiene, abajo se usa el centro.
+
+    if ($hay_banner && $hay_banner_posicion) {
+        $columnas .= ", banner_posicion";
     }
 
     $stmt = $pdo->prepare("
@@ -211,6 +220,18 @@ $banner = "";
 if ($usuario && $hay_banner && !empty($usuario["banner_url"])) {
     $banner = banner_de($usuario["banner_url"]);
 }
+
+// Encuadre elegido en la ventana de recorte, aplicado como `object-position`.
+// Sólo importa para los banners subidos sin recortar (los GIF animados), donde
+// la imagen entra entera y esto decide qué parte se ve. El default al centro
+// está en config/banner.php, así que nunca queda vacío aunque la base todavía
+// no tenga la columna.
+
+$banner_posicion = banner_posicion_o_centro(
+    $usuario && $hay_banner && $hay_banner_posicion && isset($usuario["banner_posicion"])
+        ? $usuario["banner_posicion"]
+        : ""
+);
 
 $bio = "";
 if ($usuario && $hay_bio && !empty($usuario["bio"])) {
@@ -322,6 +343,7 @@ $titulo = $usuario
                         class="pf-banner-img"
                         src="<?php echo htmlspecialchars($banner); ?>"
                         alt="Banner de <?php echo htmlspecialchars($usuario["nombre_usuario"]); ?>"
+                        style="object-position: <?php echo htmlspecialchars($banner_posicion); ?>"
                         >
                     </div>
                 <?php else: ?>

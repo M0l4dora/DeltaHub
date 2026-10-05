@@ -3,6 +3,7 @@
 session_start();
 
 require_once "config/database.php";
+require_once "config/banner.php";
 
 // SEGURIDAD: comprobar que haya una sesión iniciada
 
@@ -38,6 +39,7 @@ function columna_existe($pdo, $tabla, $columna) {
 
 $hay_bio = columna_existe($pdo, "usuarios", "bio");
 $hay_banner = columna_existe($pdo, "usuarios", "banner_url");
+$hay_banner_posicion = columna_existe($pdo, "usuarios", "banner_posicion");
 
 // Buscar los datos del usuario
 
@@ -49,6 +51,13 @@ if ($hay_bio) {
 
 if ($hay_banner) {
     $columnas .= ", banner_url";
+}
+
+// La posición guardada sólo se lee si la base tiene la columna. Si no la tiene,
+// `$banner_posicion` se queda en "" y abajo se usa el centro.
+
+if ($hay_banner && $hay_banner_posicion) {
+    $columnas .= ", banner_posicion";
 }
 
 $sql = "SELECT $columnas
@@ -122,7 +131,7 @@ $avisos = [
     "sin_archivo" => ["error", "No se recibió ninguna imagen. Probá de nuevo."],
     "tamano"      => ["error", "La imagen pesa demasiado: el avatar admite 2 MB y el banner 4 MB."],
     "no_imagen"   => ["error", "El archivo elegido no es una imagen válida."],
-    "formato"     => ["error", "Formato no permitido. Usá PNG, JPG o WebP."],
+    "formato"     => ["error", "Formato no permitido. Usá PNG, JPG, WebP o GIF."],
     "guardado"    => ["error", "No se pudo guardar la imagen en el servidor."],
     "columna"     => ["error", "Falta la columna banner_url en la base de datos (sql/migracion_banner_usuario.sql)."],
 ];
@@ -148,6 +157,18 @@ if ($hay_banner
 
     $banner = $usuario["banner_url"];
 }
+
+// El encuadre elegido en la ventana de recorte. Va como `object-position` sobre
+// la imagen: sólo importa para los banners que se subieron sin recortar (los GIF
+// animados), donde la imagen entra entera y esto decide qué parte se ve.
+// El default al centro está en config/banner.php, así que nunca queda vacío
+// aunque la base todavía no tenga la columna.
+
+$banner_posicion = banner_posicion_o_centro(
+    $hay_banner && $hay_banner_posicion && isset($usuario["banner_posicion"])
+        ? $usuario["banner_posicion"]
+        : ""
+);
 
 // Formatear la fecha de registro en español
 
@@ -302,12 +323,13 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
 
             <h2 class="profile-subtitle">Banner del perfil</h2>
 
-            <div class="banner-preview<?php echo $banner === "" ? " is-empty" : ""; ?>">
+            <div class="banner-preview<?php echo $banner === "" ? " is-empty" : ""; ?>" data-banner-preview>
                 <?php if ($banner !== ""): ?>
                     <img
                     src="<?php echo htmlspecialchars($banner); ?>"
                     alt="Tu banner de perfil"
                     class="banner-preview-img"
+                    style="object-position: <?php echo htmlspecialchars($banner_posicion); ?>"
                     >
                 <?php else: ?>
                     <span class="banner-preview-empty">Todavía no tenés un banner</span>
@@ -320,7 +342,7 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
                 type="file"
                 id="banner"
                 name="banner"
-                accept="image/png,image/jpeg,image/webp"
+                accept="image/png,image/jpeg,image/webp,image/gif"
                 required
                 class="avatar-pick-input"
                 >
@@ -330,9 +352,16 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
                 </label>
 
                 <small class="avatar-hint">
-                    PNG, JPG o WebP. Tamaño máximo: 4 MB. Se muestra arriba de tu perfil público.
+                    PNG, JPG, WebP o GIF (animado). Tamaño máximo: 4 MB.
+                    Se muestra arriba de tu perfil público.
                 </small>
                 <small class="avatar-picked" data-archivo-elegido></small>
+
+                <!-- El encuadre que se eligió en la ventana emergente, en
+                     formato "X% Y%". Lo valida config/banner.php del lado del
+                     servidor. Se manda centrado cuando el archivo sí se recorta,
+                     porque ahí el recorte ya trae el encuadre cocido. -->
+                <input type="hidden" name="banner_posicion" value="<?php echo htmlspecialchars($banner_posicion); ?>" data-banner-posicion>
 
                 <?php if (!$hay_banner): ?>
                     <small class="cuenta-error">
@@ -397,6 +426,58 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
     <footer>
         <p>&copy; 2026 Deltahub. Todos los derechos reservados.</p>
     </footer>
+
+    <!-- Ventana emergente para acomodar el banner antes de subirlo. Se abre sola
+         al elegir el archivo (la lógica está en script.js) y deja la imagen ya
+         recortada, o entera si se pidió conservar la animación del GIF. -->
+    <div class="recorte-overlay" data-recorte hidden>
+
+        <div
+        class="recorte-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="recorte-titulo"
+        >
+
+            <h2 class="recorte-titulo" id="recorte-titulo">Acomodar el banner</h2>
+
+            <p class="recorte-ayuda">
+                Arrastrá la imagen para centrarla. La rueda del mouse o el control
+                de zoom la acercan y la alejan.
+            </p>
+
+            <!-- El <div> del marco es lo único que define el recorte: lo que
+                 queda dentro de sus bordes es exactamente lo que se sube. -->
+            <div class="recorte-lienzo" data-recorte-lienzo>
+                <img class="recorte-imagen" data-recorte-imagen alt="">
+                <div class="recorte-marco" data-recorte-marco aria-hidden="true"></div>
+            </div>
+
+            <label class="recorte-zoom">
+                <span>Zoom</span>
+                <input type="range" min="100" max="400" step="1" value="100" data-recorte-zoom>
+            </label>
+
+            <!-- Marcado, el archivo sube entero y la posición elegida se guarda
+                 en usuarios.banner_posicion. Es lo único que deja respirar a un
+                 GIF animado: el recorte con canvas lo dejaría en un fotograma. -->
+            <label class="recorte-check">
+                <input type="checkbox" data-recorte-conservar checked>
+                <span data-recorte-conservar-texto>Conservar animación</span>
+            </label>
+
+            <p class="recorte-nota" data-recorte-nota></p>
+
+            <p class="recorte-error" data-recorte-error hidden></p>
+
+            <div class="recorte-acciones">
+                <button type="button" class="btn" data-recorte-cancelar>Cancelar</button>
+                <button type="button" class="btn" data-recorte-aceptar>Usar este encuadre</button>
+            </div>
+
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 
