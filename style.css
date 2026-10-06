@@ -1428,6 +1428,10 @@ body.workshop .item-form select:focus{
     -webkit-line-clamp: 1;
     line-clamp: 1;
 }
+
+.ws-grid.list-view .ws-item-thumb{
+    max-height: 150px;
+}
 /* ===== MI CUENTA ===== */
 
 .cuenta::before{
