@@ -104,6 +104,7 @@ if (isset($_GET["id"]) && is_string($_GET["id"])) {
 $hay_bio = columna_existe($pdo, "usuarios", "bio");
 $hay_banner = columna_existe($pdo, "usuarios", "banner_url");
 $hay_banner_posicion = columna_existe($pdo, "usuarios", "banner_posicion");
+$hay_banner_zoom = columna_existe($pdo, "usuarios", "banner_zoom");
 
 $usuario = null;
 $publicaciones = [];
@@ -129,10 +130,14 @@ if ($id_publico !== null) {
     }
 
     // El encuadre guardado sólo se lee si la base tiene la columna. Si no la
-    // tiene, abajo se usa el centro.
+    // tiene, abajo se usa el centro y el zoom se queda en 1.
 
     if ($hay_banner && $hay_banner_posicion) {
         $columnas .= ", banner_posicion";
+    }
+
+    if ($hay_banner && $hay_banner_zoom) {
+        $columnas .= ", banner_zoom";
     }
 
     $stmt = $pdo->prepare("
@@ -230,6 +235,17 @@ if ($usuario && $hay_banner && !empty($usuario["banner_url"])) {
 $banner_posicion = banner_posicion_o_centro(
     $usuario && $hay_banner && $hay_banner_posicion && isset($usuario["banner_posicion"])
         ? $usuario["banner_posicion"]
+        : ""
+);
+
+// El zoom del mismo encuadre, que el object-position de arriba no puede llevar:
+// entra como `transform: scale()` anclado al mismo punto (ver .pf-banner-img en
+// style.css). Sin la columna, o con un banner recortado, queda en 1 y el
+// scale() no hace nada.
+
+$banner_zoom = banner_zoom_o_uno(
+    $usuario && $hay_banner && $hay_banner_zoom && isset($usuario["banner_zoom"])
+        ? $usuario["banner_zoom"]
         : ""
 );
 
@@ -343,7 +359,7 @@ $titulo = $usuario
                         class="pf-banner-img"
                         src="<?php echo htmlspecialchars($banner); ?>"
                         alt="Banner de <?php echo htmlspecialchars($usuario["nombre_usuario"]); ?>"
-                        style="object-position: <?php echo htmlspecialchars($banner_posicion); ?>"
+                        style="--banner-posicion: <?php echo htmlspecialchars($banner_posicion); ?>; --banner-zoom: <?php echo htmlspecialchars($banner_zoom); ?>"
                         >
                     </div>
                 <?php else: ?>

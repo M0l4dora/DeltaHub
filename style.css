@@ -1428,6 +1428,10 @@ body.workshop .item-form select:focus{
     -webkit-line-clamp: 1;
     line-clamp: 1;
 }
+
+.ws-grid.list-view .ws-item-thumb{
+    max-height: 150px;
+}
 /* ===== MI CUENTA ===== */
 
 .cuenta::before{
@@ -1614,10 +1618,25 @@ body.workshop .item-form select:focus{
     color: rgba(255, 255, 255, 0.5);
 }
 
+/* El encuadre del banner (posición + zoom) llega desde la base en dos variables
+   que escriben cuenta.php y perfil.php: --banner-posicion y --banner-zoom.
+
+   El object-position solo elige qué pedazo de la imagen se ve de una imagen que
+   ya está arrancada con cover: el zoom que eligió el usuario en la ventana de
+   recorte no entra ahí, así que se aplica como un scale() anclado al MISMO punto
+   del object-position. Con los dos juntos se recupera el encuadre exacto: la
+   imagen se magnifica desde el centro que el usuario muevió, y no desde una
+   esquina como haría un scale() sin origen.
+
+   Con --banner-zoom en 1 el scale() no hace nada, así que los banners ya
+   guardados (que no tienen la columna) se ven igual que antes. */
 .banner-preview-img{
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: var(--banner-posicion, 50% 50%);
+    transform: scale(var(--banner-zoom, 1));
+    transform-origin: var(--banner-posicion, 50% 50%);
 }
 
 /* El botón del banner es un <label>, así que hereda el alto y el borde de .btn
@@ -2623,11 +2642,18 @@ body.workshop .item-form select:focus{
     border-bottom: 1px solid var(--ws-line);
 }
 
+/* El encuadre va en --banner-posicion y --banner-zoom, igual que en la vista
+   previa de cuenta.php (más arriba). El transform-origin tiene que ser el mismo
+   punto que el object-position: es lo que hace que el zoom se agrande desde
+   donde el usuario dejó el encuadre y no desde una esquina. */
 .pf-banner-img{
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+    object-position: var(--banner-posicion, 50% 50%);
+    transform: scale(var(--banner-zoom, 1));
+    transform-origin: var(--banner-posicion, 50% 50%);
 }
 
 .pf-head{

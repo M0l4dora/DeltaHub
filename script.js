@@ -520,10 +520,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // El recorte se arma con <canvas>, y un canvas no sabe escribir un GIF: el
 // resultado sería un fotograma fijo y se perdería justo lo que hizo útil
 // admitir GIFs. Por eso la casilla "Conservar animación" sube el archivo entero
-// y guarda el encuadre como dos porcentajes en usuarios.banner_posicion, que
-// después se aplican como `object-position` (ver config/banner.php en PHP). Para
-// los GIF viene marcada de entrada; para el resto, desmarcada, que es lo que se
-// espera de un recorte.
+// y guarda el encuadre en dos columnas, usuarios.banner_posicion y
+// usuarios.banner_zoom: la primera va como `object-position` y el segundo como
+// `transform: scale()` anclado al mismo punto (ver config/banner.php en PHP y
+// .pf-banner-img en style.css). Para los GIF viene marcada de entrada; para el
+// resto, desmarcada, que es lo que se espera de un recorte.
 
 (function ventanaRecorte() {
 
@@ -543,6 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCancelar = overlay.querySelector('[data-recorte-cancelar]');
     const btnAceptar = overlay.querySelector('[data-recorte-aceptar]');
     const campoPosicion = input ? input.form.querySelector('[data-banner-posicion]') : null;
+    const campoZoom = input ? input.form.querySelector('[data-banner-zoom]') : null;
     const avisoElegido = input ? input.form.querySelector('[data-archivo-elegido]') : null;
 
     if (!input || !lienzo || !img || !marco) return;
@@ -955,7 +957,7 @@ document.addEventListener('DOMContentLoaded', () => {
         input.files = portapapeles.files;
     }
 
-    function actualizarVistaPrevia(url, posicion, nombre) {
+    function actualizarVistaPrevia(url, posicion, nombre, zoom) {
         const caja = document.querySelector('[data-banner-preview]');
 
         if (caja) {
@@ -974,7 +976,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             previa.src = url;
-            previa.style.objectPosition = posicion;
+
+            // Las dos variables que lee el CSS: la posición va también como
+            // origen del scale() del zoom, así que se escriben juntas.
+            previa.style.setProperty('--banner-posicion', posicion);
+            previa.style.setProperty('--banner-zoom', zoom);
         }
 
         if (urlPrevia) URL.revokeObjectURL(urlPrevia);
@@ -986,6 +992,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (campoPosicion) {
             campoPosicion.value = posicion;
+        }
+
+        if (campoZoom) {
+            campoZoom.value = zoom;
         }
     }
 
@@ -1003,10 +1013,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const posicion = posicionEnPorcentaje();
 
+        // El zoom va con la posición porque los dos son el mismo encuadre: el
+        // CSS usa el punto del object-position como origen del scale(), y por
+        // eso magnificar desde el centro que el usuario movió reproduce lo que
+        // se veía en la ventana. Con dos decimales alcanza para el slider.
+        const zoom = String(Math.round(archivo.nivelZoom * 100) / 100);
+
         if (conservar.checked) {
             // Sin recortar: sube el archivo tal cual lo eligió el usuario y el
-            // encuadre viaja en la columna banner_posicion. El perfil lo aplica
-            // como object-position, así que el GIF sigue animándose.
+            // encuadre viaja en las columnas banner_posicion y banner_zoom. El
+            // perfil lo aplica como object-position + scale(), así que el GIF
+            // sigue animándose.
             if (elegido.size > MAXIMO) {
                 mostrarError('Ese archivo pesa más de 4 MB. Recortalo, o usá uno más liviano.');
                 btnAceptar.disabled = false;
@@ -1015,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             ponerEnElInput(elegido);
-            actualizarVistaPrevia(archivo.url, posicion, elegido.name);
+            actualizarVistaPrevia(archivo.url, posicion, elegido.name, zoom);
         } else {
             const blob = await recortar();
 
@@ -1037,12 +1054,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             ponerEnElInput(archivoRecortado);
 
-            // El recorte ya trae el encuadre cocido, así que la posición se
-            // deja en el centro.
+            // El recorte ya trae el encuadre cocido (incluido el zoom, que sale
+            // del tamaño del lienzo), así que la posición se deja en el centro y
+            // el zoom en 1.
             actualizarVistaPrevia(
                 URL.createObjectURL(blob),
                 '50% 50%',
-                elegido.name + ' (recortado)'
+                elegido.name + ' (recortado)',
+                '1'
             );
         }
 

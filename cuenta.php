@@ -40,6 +40,7 @@ function columna_existe($pdo, $tabla, $columna) {
 $hay_bio = columna_existe($pdo, "usuarios", "bio");
 $hay_banner = columna_existe($pdo, "usuarios", "banner_url");
 $hay_banner_posicion = columna_existe($pdo, "usuarios", "banner_posicion");
+$hay_banner_zoom = columna_existe($pdo, "usuarios", "banner_zoom");
 
 // Buscar los datos del usuario
 
@@ -54,10 +55,16 @@ if ($hay_banner) {
 }
 
 // La posición guardada sólo se lee si la base tiene la columna. Si no la tiene,
-// `$banner_posicion` se queda en "" y abajo se usa el centro.
+// `$banner_posicion` se queda en "" y abajo se usa el centro. El zoom se lee
+// igual: sin la columna se muestra sin zoom, que es lo que se veía antes de que
+// existiera.
 
 if ($hay_banner && $hay_banner_posicion) {
     $columnas .= ", banner_posicion";
+}
+
+if ($hay_banner && $hay_banner_zoom) {
+    $columnas .= ", banner_zoom";
 }
 
 $sql = "SELECT $columnas
@@ -129,7 +136,7 @@ $avisos = [
     "avatar_ok"   => ["ok",    "Avatar actualizado."],
     "banner_ok"   => ["ok",    "Banner actualizado. Ya se ve en tu perfil público."],
     "sin_archivo" => ["error", "No se recibió ninguna imagen. Probá de nuevo."],
-    "tamano"      => ["error", "La imagen pesa demasiado: el avatar admite 2 MB y el banner 4 MB."],
+    "tamano"      => ["error", "La imagen pesa demasiado: el avatar y el banner admiten 4 MB."],
     "no_imagen"   => ["error", "El archivo elegido no es una imagen válida."],
     "formato"     => ["error", "Formato no permitido. Usá PNG, JPG, WebP o GIF."],
     "guardado"    => ["error", "No se pudo guardar la imagen en el servidor."],
@@ -167,6 +174,16 @@ if ($hay_banner
 $banner_posicion = banner_posicion_o_centro(
     $hay_banner && $hay_banner_posicion && isset($usuario["banner_posicion"])
         ? $usuario["banner_posicion"]
+        : ""
+);
+
+// El zoom que se eligió junto con la posición. Con 1 la imagen entra justa (un
+// cover) y con más se magnifica desde el punto del encuadre, que es lo que hace
+// el `transform: scale()` de .banner-preview-img y .pf-banner-img.
+
+$banner_zoom = banner_zoom_o_uno(
+    $hay_banner && $hay_banner_zoom && isset($usuario["banner_zoom"])
+        ? $usuario["banner_zoom"]
         : ""
 );
 
@@ -247,7 +264,7 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
                     type="file"
                     id="avatar"
                     name="avatar"
-                    accept="image/png,image/jpeg,image/webp"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
                     required
                     class="avatar-pick-input"
                     >
@@ -263,7 +280,7 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
                         <span class="avatar-pick-hint">Tocá la foto para elegir una imagen</span>
                     </label>
 
-                    <small class="avatar-hint">PNG, JPG o WebP. Tamaño máximo: 2 MB.</small>
+                    <small class="avatar-hint">PNG, JPG, WebP o GIF (animado). Tamaño máximo: 4 MB.</small>
                     <small class="avatar-picked" data-archivo-elegido></small>
 
                     <button type="submit" class="btn avatar-pick-btn">Cambiar avatar</button>
@@ -329,7 +346,7 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
                     src="<?php echo htmlspecialchars($banner); ?>"
                     alt="Tu banner de perfil"
                     class="banner-preview-img"
-                    style="object-position: <?php echo htmlspecialchars($banner_posicion); ?>"
+                    style="--banner-posicion: <?php echo htmlspecialchars($banner_posicion); ?>; --banner-zoom: <?php echo htmlspecialchars($banner_zoom); ?>"
                     >
                 <?php else: ?>
                     <span class="banner-preview-empty">Todavía no tenés un banner</span>
@@ -362,6 +379,12 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
                      servidor. Se manda centrado cuando el archivo sí se recorta,
                      porque ahí el recorte ya trae el encuadre cocido. -->
                 <input type="hidden" name="banner_posicion" value="<?php echo htmlspecialchars($banner_posicion); ?>" data-banner-posicion>
+
+                <!-- El zoom del mismo encuadre, como multiplicador ("1" a "4").
+                     Viaja siempre, aunque la base todavía no tenga la columna:
+                     cambiar_banner.php lo ignora si falta y el banner se guarda
+                     sin zoom, igual que antes. -->
+                <input type="hidden" name="banner_zoom" value="<?php echo htmlspecialchars($banner_zoom); ?>" data-banner-zoom>
 
                 <?php if (!$hay_banner): ?>
                     <small class="cuenta-error">
@@ -458,9 +481,10 @@ $rol_clase = "role-" . htmlspecialchars($usuario["rol"]);
                 <input type="range" min="100" max="400" step="1" value="100" data-recorte-zoom>
             </label>
 
-            <!-- Marcado, el archivo sube entero y la posición elegida se guarda
-                 en usuarios.banner_posicion. Es lo único que deja respirar a un
-                 GIF animado: el recorte con canvas lo dejaría en un fotograma. -->
+            <!-- Marcado, el archivo sube entero y el encuadre elegido (la
+                 posición y el zoom) se guarda en usuarios.banner_posicion y
+                 usuarios.banner_zoom. Es lo único que deja respirar a un GIF
+                 animado: el recorte con canvas lo dejaría en un fotograma. -->
             <label class="recorte-check">
                 <input type="checkbox" data-recorte-conservar checked>
                 <span data-recorte-conservar-texto>Conservar animación</span>

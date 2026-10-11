@@ -49,4 +49,53 @@ function banner_posicion_o_centro($valor) {
     return $posicion === "" ? "50% 50%" : $posicion;
 }
 
+
+// Normaliza el zoom del banner: un multiplicador entre 1 (la imagen apenas
+// tapa el marco, como un cover) y 4.
+//
+// El zoom va aparte de la posición porque un `object-position` no agranda la
+// imagen: sólo elige qué pedazo se ve de una imagen que ya está arrancada con
+// cover. El zoom se aplica encima como `transform: scale()`, anclado al mismo
+// punto que se usa de object-position, así que los dos juntos reconstruyen el
+// encuadre de la ventana de recorte (ver .pf-banner-img en style.css).
+//
+// Se recorta en vez de rechazarse porque un valor fuera de rango casi siempre
+// es un error de dedo, no un intento de nada: lo que importa es que el CSS
+// reciba un número dentro del rango que el navegador aguanta. Lo que no es un
+// número devuelve "" para que el que llame use el zoom de siempre.
+
+function banner_zoom_de($valor) {
+    if (is_string($valor)) {
+        $valor = trim($valor);
+    }
+
+    if (!is_numeric($valor)) {
+        return "";
+    }
+
+    $zoom = (float) $valor;
+
+    // Los mismos topes que pone script.js en la ventana de recorte, para que un
+    // valor disparado a mano no pueda mandarle un scale() gigante al CSS.
+    if ($zoom < 1) {
+        $zoom = 1;
+    }
+
+    if ($zoom > 4) {
+        $zoom = 4;
+    }
+
+    // Sin ceros de más: "1" en vez de "1.00", que es lo mismo para el CSS y se
+    // lee mejor en la base.
+    return rtrim(rtrim(number_format($zoom, 2, ".", ""), "0"), ".");
+}
+
+
+// El zoom a usar, con 1 (sin zoom) como valor por defecto.
+function banner_zoom_o_uno($valor) {
+    $zoom = banner_zoom_de($valor);
+
+    return $zoom === "" ? "1" : $zoom;
+}
+
 ?>

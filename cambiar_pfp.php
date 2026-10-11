@@ -39,9 +39,11 @@ if (!isset($_FILES["avatar"]) || $_FILES["avatar"]["error"] !== UPLOAD_ERR_OK) {
 $archivo = $_FILES["avatar"];
 
 
-// Tamaño máximo: 2 MB
+// Tamaño máximo: 4 MB. Es el mismo límite que el banner, porque un GIF
+// animado que se vea bien a tamaño de avatar suele pesar bastante más que
+// un PNG o un JPG.
 
-$maximo = 2 * 1024 * 1024;
+$maximo = 4 * 1024 * 1024;
 
 if ($archivo["size"] > $maximo) {
     volver_a_cuenta("tamano");
@@ -64,7 +66,8 @@ $mime = $info["mime"];
 $formatos_permitidos = [
     "image/jpeg" => "jpg",
     "image/png"  => "png",
-    "image/webp" => "webp"
+    "image/webp" => "webp",
+    "image/gif"  => "gif"
 ];
 
 

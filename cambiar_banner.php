@@ -151,11 +151,26 @@ $posicion = isset($_POST["banner_posicion"])
     : "";
 
 
+// El zoom va en su propia columna (sql/migracion_banner_zoom.sql) porque el
+// `object-position` de arriba no lo puede llevar: la posición dice qué parte se
+// ve, el zoom qué tan grande entra. Los dos se leen juntos en cuenta.php y
+// perfil.php, que los aplican como `object-position` + `transform: scale()`.
+
+$zoom = isset($_POST["banner_zoom"])
+    ? banner_zoom_de($_POST["banner_zoom"])
+    : "";
+
+if ($zoom === "") {
+    $zoom = banner_zoom_o_uno("");
+}
+
+
 // La misma comprobación del esquema de arriba, reutilizada para armar el UPDATE:
 // si la migración de la posición todavía no se corrió, la columna no entra en la
 // consulta y el banner se guarda igual (se verá centrado).
 
 $hay_posicion = columna_existe($pdo, "usuarios", "banner_posicion");
+$hay_zoom = columna_existe($pdo, "usuarios", "banner_zoom");
 
 
 // Actualizar usuario
@@ -171,6 +186,11 @@ $datos = [
 if ($hay_posicion) {
     $sql .= ", banner_posicion = :banner_posicion";
     $datos[":banner_posicion"] = $posicion;
+}
+
+if ($hay_zoom) {
+    $sql .= ", banner_zoom = :banner_zoom";
+    $datos[":banner_zoom"] = $zoom;
 }
 
 $sql .= "
