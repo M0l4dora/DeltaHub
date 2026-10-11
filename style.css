@@ -57,11 +57,19 @@ body::before{
     position: fixed;
     inset: 0;
     z-index: -1;
-    background-image: url("imagenes/workshop_bg.png");
-    background-repeat: repeat; /* Patrón en mosaico a tamaño natural */
-    background-position: top left;
-    background-size: auto;
-    filter: brightness(0.55) blur(1px); /* Sin blur: el blur de 20px vaporizaba las líneas */
+    background-color: rgb(10, 8, 50); /* Color base por si el video no carga */
+}
+
+/* Fondo de video de la workshop (se reproduce siempre en bucle) */
+.ws-bg-video{
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+    pointer-events: none;
+    filter: brightness(0.55); /* Menos brillo para que el contenido resalte */
 }
 
 header{
@@ -1496,17 +1504,6 @@ body.workshop .item-form select:focus{
     image-rendering: crisp-edges;
 }
 
-/* ===== Avatar y banner editables =====
-
-   Los dos <input type="file"> quedan escondidos: el avatar se cambia con un
-   clic en la foto y el banner con su botón, y en los dos casos lo que se ve
-   es un <label for> del input. Se esconden pero no se borran (siguen siendo lo
-   que el teclado y el lector de pantalla necesitan).
-
-   Elegir el archivo no sube nada: eso lo manda el <button type="submit"> de
-   cada formulario, que es el único paso que falta después de elegir la
-   imagen. */
-
 .avatar-pick{
     display: flex;
     flex-direction: column;
@@ -1534,9 +1531,6 @@ body.workshop .item-form select:focus{
     cursor: url("cursores/pointer_kris.gif"), auto;
 }
 
-/* El clic en la foto tiene que verse al pasar por arriba, si no parece que sea
-   un control y no una imagen más de la tarjeta. El :focus-within es lo mismo
-   pero para cuando el foco llega por el teclado. */
 .avatar-pick-label:hover .profile-avatar-wrap,
 .avatar-pick-label:focus-within .profile-avatar-wrap{
     border-color: #7f7bff;
@@ -1580,9 +1574,7 @@ body.workshop .item-form select:focus{
     font-size: 15px;
 }
 
-/* El formulario del banner es una columna como .avatar-form, pero no comparte
-   la clase a propósito: .avatar-form input[type="file"] le pondría borde y fondo
-   al input escondido. */
+
 .banner-form{
     display: flex;
     flex-direction: column;
@@ -1590,9 +1582,7 @@ body.workshop .item-form select:focus{
     margin-bottom: 20px;
 }
 
-/* Vista previa del banner: el mismo rectángulo que se ve arriba del perfil, con
-   la proporción recortada igual (object-fit) para no mentir sobre lo que se
-   va a ver. */
+/* Vista previa del banner*/
 .banner-preview{
     width: 100%;
     height: 132px;
@@ -1618,18 +1608,7 @@ body.workshop .item-form select:focus{
     color: rgba(255, 255, 255, 0.5);
 }
 
-/* El encuadre del banner (posición + zoom) llega desde la base en dos variables
-   que escriben cuenta.php y perfil.php: --banner-posicion y --banner-zoom.
-
-   El object-position solo elige qué pedazo de la imagen se ve de una imagen que
-   ya está arrancada con cover: el zoom que eligió el usuario en la ventana de
-   recorte no entra ahí, así que se aplica como un scale() anclado al MISMO punto
-   del object-position. Con los dos juntos se recupera el encuadre exacto: la
-   imagen se magnifica desde el centro que el usuario muevió, y no desde una
-   esquina como haría un scale() sin origen.
-
-   Con --banner-zoom en 1 el scale() no hace nada, así que los banners ya
-   guardados (que no tienen la columna) se ven igual que antes. */
+/* El encuadre del banner*/
 .banner-preview-img{
     width: 100%;
     height: 100%;
@@ -1639,8 +1618,6 @@ body.workshop .item-form select:focus{
     transform-origin: var(--banner-posicion, 50% 50%);
 }
 
-/* El botón del banner es un <label>, así que hereda el alto y el borde de .btn
-   pero sin el margen que llevan los inputs de arriba. */
 .banner-btn{
     margin-top: 0;
     cursor: url("cursores/pointer_kris.gif"), auto;
@@ -1653,9 +1630,6 @@ body.workshop .item-form select:focus{
 
 
 /* ===== Ventana emergente para acomodar el banner ===== */
-
-/* El fondo que tapa la página. Se oculta con el atributo `hidden`, no con
-   `display: none` en CSS: el JS lo saca y lo vuelve a poner. */
 .recorte-overlay{
     position: fixed;
     inset: 0;
@@ -1701,8 +1675,7 @@ body.workshop .item-form select:focus{
     color: rgba(255, 255, 255, 0.72);
 }
 
-/* El lienzo es el área de trabajo: el marco del recorte va encima. Lo que
-   queda fuera del marco es lo que se descarta. */
+
 .recorte-lienzo{
     position: relative;
     width: 100%;
@@ -2577,6 +2550,7 @@ body.workshop .item-form select:focus{
     border-radius: 4px;
     transition: background-color 130ms ease, border-color 130ms ease, transform 130ms ease;
     cursor: url("cursores/pointer_kris.gif"), auto;
+    text-shadow: none;
 }
 
 .item-back-link:hover,
@@ -2730,6 +2704,7 @@ body.workshop .item-form select:focus{
     font-size: 12.5px;
     color: var(--ws-ink-low);
     font-variant-numeric: tabular-nums;
+    text-shadow: none;
 }
 
 .pf-meta-dot{
@@ -2862,9 +2837,9 @@ body.workshop .item-form select:focus{
     font-size: 18px;
     line-height: 1.2;
     color: #fff;
-    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
     font-variant-numeric: tabular-nums;
     font-weight: normal;
+    text-shadow: none;
 }
 
 .pf-stat-num.is-rate{
@@ -2879,6 +2854,7 @@ body.workshop .item-form select:focus{
     text-transform: none;
     color: var(--ws-ink-mid);
     white-space: nowrap;
+    text-shadow: none;
 }
 
 .pf-section-title{

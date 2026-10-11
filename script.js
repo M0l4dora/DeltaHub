@@ -1137,4 +1137,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 })();
 
+// Fondo de video de la workshop: garantiza que se reproduzca siempre en bucle
+document.addEventListener('DOMContentLoaded', () => {
+    const video = document.querySelector('.ws-bg-video');
+    if (!video) return;
+
+    video.play().catch(() => {
+        const intentarReproducir = () => video.play();
+        document.addEventListener('click', intentarReproducir, { once: true });
+        document.addEventListener('keydown', intentarReproducir, { once: true });
+    });
+});
+
 

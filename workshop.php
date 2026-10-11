@@ -106,6 +106,10 @@ if ($slug_categoria_filtro !== '' && items_tienen_capitulo($pdo)) {
     <link rel="manifest" href="favicon\site.webmanifest" />
 </head>
 <body class="workshop">
+    <video class="ws-bg-video" autoplay muted loop playsinline preload="auto">
+        <source src="imagenes/wsbackground.mp4" type="video/mp4">
+    </video>
+
     <header>
         <a href="index.php" class="header-logo-LoginRegister">
             <img src="imagenes/DeltahubLogo3px.png" alt="logo deltahub">
