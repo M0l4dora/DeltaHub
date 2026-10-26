@@ -955,7 +955,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         portapapeles.items.add(file);
         input.files = portapapeles.files;
-    }
+    }3
 
     function actualizarVistaPrevia(url, posicion, nombre, zoom) {
         const caja = document.querySelector('[data-banner-preview]');

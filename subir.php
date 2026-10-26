@@ -27,8 +27,8 @@ $tamano_maximo_mb = 50;
 $extensiones_portada = ["jpg", "jpeg", "png", "gif", "webp"];
 $portada_maxima_mb = 5;
 
-$carpeta_archivos = __DIR__ . "/uploads/items/";
-$carpeta_portadas = __DIR__ . "/uploads/portadas/";
+$carpeta_archivos = __DIR__ . "/Uploads/items/";
+$carpeta_portadas = __DIR__ . "/Uploads/portadas/";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
