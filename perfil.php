@@ -298,7 +298,7 @@ $titulo = $usuario
         </a>
         <a href="index.php" id="shadow">Principal</a>
         <a href="workshop.php" id="shadow">Workshop</a>
-        <a href="community.html" id="shadow">Comunidad</a>
+        <a href="community.php" id="shadow">Comunidad</a>
 
         <div class="auth">
 

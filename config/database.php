@@ -2,8 +2,8 @@
 
 $host = "localhost";
 $dbname = "deltahub";
-$username = "phpmyadmin";
-$password = "RedesInformaticas";
+$username = "root";
+$password = "";
 
 try {
 

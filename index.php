@@ -40,7 +40,7 @@ session_start();
 
         <a href="index.php" id="shadow">Principal</a>
         <a href="workshop.php" id="shadow">Workshop</a>
-        <a href="community.html" id="shadow">Comunidad</a>
+        <a href="community.php" id="shadow">Comunidad</a>
 
         <div class="auth">
 
@@ -89,7 +89,7 @@ session_start();
 
         <div class="main_buttons">
             <a href="workshop.php" class="boton">Explorar la workshop</a>
-            <a href="community.html" class="boton2">Visita la comunidad</a>
+            <a href="community.php" class="boton2">Visita la comunidad</a>
         </div>
 
         <section class="features">

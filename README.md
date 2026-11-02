@@ -15,7 +15,7 @@ Este proyecto esta en desarrollo activo. Algunas funciones (como el apartado de 
 - *Perfil de cuenta* (`cuenta.php`): datos del usuario, fecha de registro, edición de la descripción pública y cambio de la foto de perfil (clic sobre el avatar, hasta 4 MB, en PNG, JPG, WebP o GIF animado) y del banner del perfil (botón propio, hasta 4 MB).
 - *Categorías*: Mods, Sprites, Saves, Música, Herramientas, Traducciones.
 - *Filtros por capítulo*: en la barra lateral de la Workshop, sólo cuando se está mirando la categoría *Saves* (o todas), aparecen los capítulos que tienen saves publicados, con la cantidad de cada uno. Al cambiar a otra categoría el filtro se suelta solo.
-- *Comunidad*: (proximamente).
+- *Comunidad* (`community.php`): feed público con publicaciones de texto, imágenes, GIF y video; respuestas, reacciones y orden por popularidad. Para habilitarla, importá `sql/migracion_comunidad.sql` en la base `deltahub`. Los archivos multimedia se guardan en `uploads/community` (máximo 8 MB por archivo).
 
 La columna del capítulo de los saves se agrega con `sql/migracion_capitulo_item.sql`; sin ella el sitio funciona igual, sólo sin capítulos ni sin el filtro que los agrupa. La descripción pública vive en la columna `usuarios.bio` y el banner en `usuarios.banner_url`. Si venís de una base instalada antes que esas columnas, corré `sql/migracion_bio_usuario.sql` y `sql/migracion_banner_usuario.sql`; el sitio funciona igual sin ellas, sólo sin descripción ni banner. Las imágenes se guardan en `Uploads/Avatars` y `Uploads/Banners`.
 
@@ -25,7 +25,6 @@ El encuadre del banner que se sube sin recortar (los GIF animados, que el `<canv
 ## Próximos pasos
 
 - Búsqueda en tiempo real dentro de la Workshop.
-- La sección de Comunidad.
 - Roles de moderador/admin con panel de gestión.
 
 ## Licencia
