@@ -70,7 +70,7 @@ $stmt->execute([
     ":nombre_usuario" => $nombre_usuario,
     ":email" => $email,
     ":password_hash" => $password_hash,
-    ":avatar_url" => "Uploads/Avatars/default.jpg"
+    ":avatar_url" => "uploads/avatars/default.jpg"
 ]);
 
 
